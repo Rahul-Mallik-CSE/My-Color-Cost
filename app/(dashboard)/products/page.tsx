@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { useState } from "react";
@@ -33,16 +35,16 @@ export default function ProductsPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredProducts = products.filter(p => 
-    p.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = products.filter((p) =>
+    p.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   );
-  
+
   const handleDeleteClick = (id: string) => {
     setProductToDelete(id);
   };
@@ -50,7 +52,7 @@ export default function ProductsPage() {
   const handleConfirmDelete = async () => {
     if (productToDelete) {
       // Simulate API delete
-      setProducts(prev => prev.filter(p => p.id !== productToDelete));
+      setProducts((prev) => prev.filter((p) => p.id !== productToDelete));
       setProductToDelete(null);
       toast.success("Product deleted successfully");
     }
@@ -67,39 +69,44 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <DashboardHeader 
-        title="Product List" 
-        onSearch={handleSearch}
-      />
+      <DashboardHeader title="Product List" onSearch={handleSearch} />
 
-      <div className="p-4 md:p-8 flex flex-col gap-6">
+      <div className="p-4 md:p-8 flex flex-col gap-4 sm:gap-6">
         {/* Header Actions */}
         <div className="flex justify-end">
-            <Link href="/products/add" className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-primary/20">
-                <Plus className="w-5 h-5" />
-                Add New Product
-            </Link>
+          <Link
+            href="/products/add"
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold transition-colors shadow-lg shadow-primary/20"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Product
+          </Link>
         </div>
 
         {/* Product Grid */}
         {isLoading ? (
-             <ProductGridSkeleton count={ITEMS_PER_PAGE} />
+          <ProductGridSkeleton count={ITEMS_PER_PAGE} />
         ) : paginatedProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-              {paginatedProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onEdit={handleEditClick}
-                  onDelete={handleDeleteClick}
-                />
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+            {paginatedProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+              />
+            ))}
+          </div>
         ) : (
-            <div className="text-center py-20 text-gray-500 flex flex-col items-center gap-4">
-              <Image src="/images/empty-state.webp" alt="Empty State" width={200} height={200} />
-                No products found.
-            </div>
+          <div className="text-center py-10 sm:py-20 text-gray-500 flex flex-col items-center gap-4">
+            <Image
+              src="/images/empty-state.webp"
+              alt="Empty State"
+              width={200}
+              height={200}
+            />
+            No products found.
+          </div>
         )}
 
         {/* Pagination */}
