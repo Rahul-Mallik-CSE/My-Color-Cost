@@ -1,6 +1,7 @@
+/** @format */
+
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,14 +15,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useForgotPasswordMutation } from "@/redux/services/authApi";
 import { toast } from "sonner";
 import { emailValidationSchema } from "@/lib/formDataValidation";
 
 type FormValues = z.infer<typeof emailValidationSchema>;
 
 const ForgetPassword = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // RTK Query forgot password mutation
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
   const {
     register,
@@ -35,19 +39,35 @@ const ForgetPassword = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
     try {
-      // Simulation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Email for reset:", data.email);
-      
-      toast.success("OTP sent to your email.");
-      router.push("/verify-otp?flow=reset"); 
-    } catch (error) {
+      const response = await forgotPassword({
+        email: data.email,
+      }).unwrap();
+
+      if (response.success) {
+        toast.success(response.message || "OTP sent to your email.");
+
+        // Store email in sessionStorage for OTP verification
+        sessionStorage.setItem("verifyEmail", data.email);
+        sessionStorage.setItem("otpFlow", "reset");
+
+        router.push("/verify-otp?flow=reset");
+      } else {
+        toast.error(
+          response.message || "Failed to send OTP. Please try again.",
+        );
+      }
+    } catch (error: unknown) {
       console.error("Failed to send OTP:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+      const apiError = error as {
+        data?: { message?: string };
+        status?: number;
+      };
+      if (apiError?.data?.message) {
+        toast.error(apiError.data.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 
@@ -84,10 +104,16 @@ const ForgetPassword = () => {
                 Forgot Password
               </h1>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full flex flex-col gap-6"
+              >
                 {/* Email Field */}
                 <div className="space-y-3">
-                  <Label htmlFor="email" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="email"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Email
                   </Label>
                   <Input
@@ -95,12 +121,16 @@ const ForgetPassword = () => {
                     type="email"
                     placeholder="Enter your email..."
                     className={`h-14 rounded-xl text-base ${
-                      errors.email ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                      errors.email
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : "text-foreground border-[#3B3B3B]"
                     }`}
                     {...register("email")}
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-500">{errors.email.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
@@ -108,7 +138,7 @@ const ForgetPassword = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                   className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none"
+                  className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none"
                 >
                   {isLoading ? (
                     <>

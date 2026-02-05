@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useResetPasswordMutation } from "@/redux/services/authApi";
 import { toast } from "sonner";
 
 // Local schema to match UI (no email) but keep validation rules
@@ -26,7 +29,7 @@ const resetPasswordSchema = z
       .max(100, "Password must be less than 100 characters")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
       )
       .refine((val) => !/\s/.test(val), {
         message: "New password cannot contain spaces",
@@ -43,8 +46,12 @@ type FormValues = z.infer<typeof resetPasswordSchema>;
 const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [otpCode, setOtpCode] = useState<string>("");
   const router = useRouter();
+
+  // RTK Query reset password mutation
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   const {
     register,
@@ -59,32 +66,61 @@ const ResetPassword = () => {
   });
 
   useEffect(() => {
-    // Check if user came from verified OTP
-    const isVerified = document.cookie.split("; ").find(row => row.startsWith("reset_verified="));
-    if (!isVerified) {
+    // Get email and OTP from sessionStorage
+    const storedEmail = sessionStorage.getItem("verifyEmail");
+    const storedOtp = sessionStorage.getItem("resetOtp");
+
+    if (!storedEmail || !storedOtp) {
       toast.error("Unauthorized access. Please verify OTP first.");
       router.push("/forgot-password");
+      return;
     }
+
+    setEmail(storedEmail);
+    setOtpCode(storedOtp);
   }, [router]);
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
+    if (!email || !otpCode) {
+      toast.error("Missing verification data. Please start again.");
+      router.push("/forgot-password");
+      return;
+    }
+
     try {
-      // Simulation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Password Reset Data:", data);
-      
-      toast.success("Password reset successfully! Please login.");
-      
-      // Clear the verification cookie
-      document.cookie = "reset_verified=; path=/; max-age=0; SameSite=Strict";
-      
-      router.push("/signin"); 
-    } catch (error) {
+      const response = await resetPassword({
+        email: email,
+        otp_code: otpCode,
+        new_password: data.newPassword,
+      }).unwrap();
+
+      if (response.success) {
+        toast.success(
+          response.message || "Password reset successfully! Please login.",
+        );
+
+        // Clear sessionStorage
+        sessionStorage.removeItem("verifyEmail");
+        sessionStorage.removeItem("resetOtp");
+        sessionStorage.removeItem("otpFlow");
+
+        router.push("/reset-success");
+      } else {
+        toast.error(
+          response.message || "Failed to reset password. Please try again.",
+        );
+      }
+    } catch (error: unknown) {
       console.error("Reset failed:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+      const apiError = error as {
+        data?: { message?: string };
+        status?: number;
+      };
+      if (apiError?.data?.message) {
+        toast.error(apiError.data.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 
@@ -126,13 +162,19 @@ const ResetPassword = () => {
               */}
               {/* Note: I'll add the subtitle based on my observation of uploaded_media_4 */}
               <p className="text-base text-gray-500 font-normal text-center mt-[-15px]">
-                  Create your new password for your account
+                Create your new password for your account
               </p>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-4">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full flex flex-col gap-4"
+              >
                 {/* New Password */}
                 <div className="space-y-3">
-                  <Label htmlFor="newPassword" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="newPassword"
+                    className="text-xl font-normal text-foreground"
+                  >
                     New Password
                   </Label>
                   <div className="relative">
@@ -141,7 +183,9 @@ const ResetPassword = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password.."
                       className={`h-14 rounded-xl text-base pr-12 ${
-                        errors.newPassword ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                        errors.newPassword
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : "text-foreground border-[#3B3B3B]"
                       }`}
                       {...register("newPassword")}
                     />
@@ -158,13 +202,18 @@ const ResetPassword = () => {
                     </button>
                   </div>
                   {errors.newPassword && (
-                    <p className="text-sm text-red-500">{errors.newPassword.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.newPassword.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Confirm Password */}
                 <div className="space-y-3">
-                  <Label htmlFor="confirmPassword" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="confirmPassword"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Re-enter New Password
                   </Label>
                   <div className="relative">
@@ -173,13 +222,17 @@ const ResetPassword = () => {
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Re-enter new password.."
                       className={`h-14 rounded-xl text-base pr-12 ${
-                        errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                        errors.confirmPassword
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : "text-foreground border-[#3B3B3B]"
                       }`}
                       {...register("confirmPassword")}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {showConfirmPassword ? (
@@ -190,7 +243,9 @@ const ResetPassword = () => {
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
 
@@ -198,7 +253,7 @@ const ResetPassword = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                   className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none mt-2"
+                  className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none mt-2"
                 >
                   {isLoading ? (
                     <>

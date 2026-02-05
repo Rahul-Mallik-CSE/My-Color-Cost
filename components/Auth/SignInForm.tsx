@@ -9,7 +9,6 @@ import * as z from "zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { useAppDispatch } from "@/redux/hooks";
 import { setCredentials } from "@/redux/features/authSlice";
+import { useLoginMutation } from "@/redux/services/authApi";
+import { setAuthCookies } from "@/lib/utils";
 import { toast } from "sonner";
 import { loginValidationSchema } from "@/lib/formDataValidation";
 
@@ -27,9 +28,10 @@ type FormValues = z.infer<typeof loginValidationSchema>;
 
 export const SignInForm = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
   const dispatch = useAppDispatch();
+
+  // RTK Query login mutation
+  const [login, { isLoading }] = useLoginMutation();
 
   const {
     register,
@@ -46,48 +48,78 @@ export const SignInForm = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
     try {
-      // Mock login request - Replace with actual API call
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, { ... });
+      console.log("🔐 Attempting login with:", { email: data.email });
 
-      // Simulating network delay for now
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Mock response data
-      const mockUser = {
-        name: "Admin User",
+      const response = await login({
         email: data.email,
-        role: "admin", // Default mock role
-      };
-      const mockToken = "mock_access_token_" + Date.now();
+        password: data.password,
+      }).unwrap();
+
+      console.log("✅ Login response:", response);
+
+      // Check if response has success and data
+      if (!response.success || !response.data) {
+        console.error("❌ Login response missing data:", response);
+        toast.error(response.message || "Login failed. Please try again.");
+        return;
+      }
+
+      const { access, refresh, user } = response.data;
+      console.log("👤 User data:", user);
+
+      // Check if the user is a retailer
+      if (user.account_type !== "retailer") {
+        toast.error("Access denied. This dashboard is only for retailers.");
+        return;
+      }
 
       // Dispatch to Redux
       dispatch(
         setCredentials({
-          user: mockUser,
-          token: mockToken,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.account_type || "retailer",
+            account_type: user.account_type,
+          },
+          accessToken: access,
+          refreshToken: refresh,
         }),
       );
 
-      // Set cookies for persistence
-      if (data.rememberMe) {
-        document.cookie = `accessToken=${mockToken}; path=/; max-age=86400;`; // 1 day
-        document.cookie = `userRole=${mockUser.role}; path=/; max-age=86400;`;
-        document.cookie = `userEmail=${encodeURIComponent(mockUser.email)}; path=/; max-age=86400;`;
-      } else {
-        document.cookie = `accessToken=${mockToken}; path=/;`; // Session cookie
-        document.cookie = `userRole=${mockUser.role}; path=/;`;
-        document.cookie = `userEmail=${encodeURIComponent(mockUser.email)}; path=/;`;
-      }
+      // Set cookies for persistence using helper function
+      setAuthCookies(
+        access,
+        refresh,
+        user.account_type || "retailer",
+        user.email,
+        user.name,
+        data.rememberMe,
+      );
 
-      toast.success("Logged in successfully!");
-      router.push("/"); // Redirect to dashboard/home
-    } catch (error) {
-      console.error("Login failed:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+      console.log("🍪 Cookies set, redirecting to dashboard...");
+      toast.success(response.message || "Logged in successfully!");
+
+      // Redirect immediately
+      window.location.replace("/dashboard");
+    } catch (error: unknown) {
+      console.error("❌ Login error caught:", error);
+      const apiError = error as {
+        data?: { message?: string; success?: boolean };
+        status?: number;
+        error?: string;
+      };
+      console.log("API Error details:", apiError);
+
+      if (apiError?.data?.message) {
+        toast.error(apiError.data.message);
+      } else if (apiError?.error) {
+        toast.error(apiError.error);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 
@@ -215,12 +247,12 @@ export const SignInForm = () => {
                       </div>
                     )}
                   />
-                  {/* <Link
+                  <Link
                     href="/forgot-password"
                     className="text-base font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
                   >
                     Forget Password?
-                  </Link> */}
+                  </Link>
                 </div>
 
                 {/* Submit Button */}
@@ -240,7 +272,7 @@ export const SignInForm = () => {
                 </Button>
 
                 {/* Sign Up Link */}
-                {/* <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="flex items-center justify-center gap-2 mt-2">
                   <span className="text-base font-normal text-foreground">
                     Don&apos;t have account?
                   </span>
@@ -250,7 +282,7 @@ export const SignInForm = () => {
                   >
                     Sign Up Now
                   </Link>
-                </div> */}
+                </div>
               </form>
             </div>
           </CardContent>

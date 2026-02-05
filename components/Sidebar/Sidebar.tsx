@@ -71,32 +71,32 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
         label: "Dashboard",
         href: "/dashboard",
         icon: LayoutGrid,
-        roles: ["admin"],
+        roles: ["retailer"],
       },
       {
         label: "Products",
         href: "/products",
         icon: ShoppingBag,
-        roles: ["admin"],
+        roles: ["retailer"],
       },
       {
         label: "Order Lists",
         href: "/orders",
         icon: ClipboardList,
-        roles: ["admin"],
+        roles: ["retailer"],
       },
 
       {
         label: "Payment List",
         href: "/payments",
         icon: CreditCard,
-        roles: ["admin"],
+        roles: ["retailer"],
       },
       {
         label: "Settings",
         href: "/settings",
         icon: Settings,
-        roles: ["admin"],
+        roles: ["retailer"],
       },
     ],
     [],
@@ -260,6 +260,8 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case "retailer":
+        return "text-primary";
       case "admin":
         return "text-primary";
       case "user":
@@ -271,12 +273,14 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
+      case "retailer":
+        return "Retailer";
       case "admin":
         return "Admin";
       case "user":
         return "User";
       default:
-        return "Admin";
+        return "Retailer";
     }
   };
 
@@ -518,10 +522,10 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                       <p
                         className={cn(
                           "text-sm truncate",
-                          getRoleBadgeColor(role || "customer"),
+                          getRoleBadgeColor(role || "retailer"),
                         )}
                       >
-                        {getRoleDisplayName(role || "customer")}
+                        {getRoleDisplayName(role || "retailer")}
                       </p>
                     </motion.div>
                   </Link>

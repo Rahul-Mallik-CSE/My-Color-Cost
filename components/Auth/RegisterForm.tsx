@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { useState } from "react";
@@ -15,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useSignupMutation } from "@/redux/services/authApi";
 import { toast } from "sonner";
 import { signupValidationSchema } from "@/lib/formDataValidation";
 
@@ -23,8 +26,10 @@ type FormValues = z.infer<typeof signupValidationSchema>;
 const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // RTK Query signup mutation
+  const [signup, { isLoading }] = useSignupMutation();
 
   const {
     register,
@@ -42,19 +47,42 @@ const RegisterForm = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
     try {
-      // Simulation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Registration Data:", data);
-      
-      toast.success("Account created successfully! Please verify your email.");
-      router.push("/verify-otp?flow=signup"); 
-    } catch (error) {
+      const response = await signup({
+        role: "retailer", // Auto-set role as retailer
+        email: data.email,
+        password: data.password,
+        name: data.full_name,
+        contact_number: data.contactNumber,
+      }).unwrap();
+
+      if (response.success) {
+        toast.success(
+          response.message ||
+            "Account created successfully! Please verify your email.",
+        );
+
+        // Store email in sessionStorage for OTP verification
+        sessionStorage.setItem("verifyEmail", data.email);
+        sessionStorage.setItem("otpFlow", "signup");
+
+        router.push("/verify-otp?flow=signup");
+      } else {
+        toast.error(
+          response.message || "Registration failed. Please try again.",
+        );
+      }
+    } catch (error: unknown) {
       console.error("Registration failed:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+      const apiError = error as {
+        data?: { message?: string };
+        status?: number;
+      };
+      if (apiError?.data?.message) {
+        toast.error(apiError.data.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 
@@ -91,10 +119,16 @@ const RegisterForm = () => {
                 Create Account
               </h1>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-4">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full flex flex-col gap-4"
+              >
                 {/* Full Name */}
                 <div className="space-y-3">
-                  <Label htmlFor="full_name" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="full_name"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Full Name
                   </Label>
                   <Input
@@ -102,18 +136,25 @@ const RegisterForm = () => {
                     type="text"
                     placeholder="Enter your full name"
                     className={`h-14 rounded-xl text-base ${
-                      errors.full_name ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                      errors.full_name
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : "text-foreground border-[#3B3B3B]"
                     }`}
                     {...register("full_name")}
                   />
                   {errors.full_name && (
-                    <p className="text-sm text-red-500">{errors.full_name.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.full_name.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Email */}
                 <div className="space-y-3">
-                  <Label htmlFor="email" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="email"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Email
                   </Label>
                   <Input
@@ -121,18 +162,25 @@ const RegisterForm = () => {
                     type="email"
                     placeholder="Enter your email..."
                     className={`h-14 rounded-xl text-base ${
-                      errors.email ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                      errors.email
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : "text-foreground border-[#3B3B3B]"
                     }`}
                     {...register("email")}
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-500">{errors.email.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Contact Number */}
                 <div className="space-y-3">
-                  <Label htmlFor="contactNumber" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="contactNumber"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Contact Number
                   </Label>
                   <Input
@@ -140,18 +188,25 @@ const RegisterForm = () => {
                     type="tel"
                     placeholder="Enter your business contact number"
                     className={`h-14 rounded-xl text-base ${
-                      errors.contactNumber ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                      errors.contactNumber
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : "text-foreground border-[#3B3B3B]"
                     }`}
                     {...register("contactNumber")}
                   />
                   {errors.contactNumber && (
-                    <p className="text-sm text-red-500">{errors.contactNumber.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.contactNumber.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Password */}
                 <div className="space-y-3">
-                  <Label htmlFor="password" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="password"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Password
                   </Label>
                   <div className="relative">
@@ -160,7 +215,9 @@ const RegisterForm = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password.."
                       className={`h-14 rounded-xl text-base pr-12 ${
-                        errors.password ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                        errors.password
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : "text-foreground border-[#3B3B3B]"
                       }`}
                       {...register("password")}
                     />
@@ -177,13 +234,18 @@ const RegisterForm = () => {
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-sm text-red-500">{errors.password.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Confirm Password */}
                 <div className="space-y-3">
-                  <Label htmlFor="confirmPassword" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="confirmPassword"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Confirm Password
                   </Label>
                   <div className="relative">
@@ -192,13 +254,17 @@ const RegisterForm = () => {
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Re-type your password.."
                       className={`h-14 rounded-xl text-base pr-12 ${
-                        errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                        errors.confirmPassword
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : "text-foreground border-[#3B3B3B]"
                       }`}
                       {...register("confirmPassword")}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {showConfirmPassword ? (
@@ -209,7 +275,9 @@ const RegisterForm = () => {
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
 
@@ -217,7 +285,7 @@ const RegisterForm = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                   className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none mt-2"
+                  className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none mt-2"
                 >
                   {isLoading ? (
                     <>
@@ -225,22 +293,22 @@ const RegisterForm = () => {
                       Creating Account...
                     </>
                   ) : (
-                    "Login" // Text based on image uploaded_media_0 which curiously says "Login" on the button but "Create Account" title? 
-                    // Actually, most register forms say "Sign Up". The image uploaded_media_0 DOES say "Login" on the button. 
-                    // I will follow the image strictly but it might be a typo in design. 
+                    "Login" // Text based on image uploaded_media_0 which curiously says "Login" on the button but "Create Account" title?
+                    // Actually, most register forms say "Sign Up". The image uploaded_media_0 DOES say "Login" on the button.
+                    // I will follow the image strictly but it might be a typo in design.
                     // "Already have an account? Sign In".
                     // Wait, if the button says "Login" it is confusing.
                     // I'll stick to "Create Account" or "Sign Up" for better UX, or just follow design?
                     // User said "given images design complete... ref for over all page design".
-                    // I'll use "Sign Up" as it makes more sense, but if user explicitly wants exact text... 
+                    // I'll use "Sign Up" as it makes more sense, but if user explicitly wants exact text...
                     // Let's look closer at the image. The button says "Login". The text below says "Already have an account? Sign In".
-                    // This is definitely a design typo. I will correct it to "Sign Up" or "Register" to be helpful, 
+                    // This is definitely a design typo. I will correct it to "Sign Up" or "Register" to be helpful,
                     // but the user might want pixel perfect.
                     // I'll use "Sign Up" because "Login" inside "Create Account" form is wrong.
                   )}
                 </Button>
 
-                 {/* Sign In Link */}
+                {/* Sign In Link */}
                 <div className="flex items-center justify-center gap-2 mt-2">
                   <span className="text-base font-normal text-foreground">
                     Already have an account?

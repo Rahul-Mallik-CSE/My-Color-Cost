@@ -1,6 +1,8 @@
+/** @format */
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,6 +19,13 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
+import { useAppDispatch } from "@/redux/hooks";
+import { setCredentials } from "@/redux/features/authSlice";
+import {
+  useVerifyOtpMutation,
+  useResendOtpMutation,
+} from "@/redux/services/authApi";
+import { setAuthCookies } from "@/lib/utils";
 import { toast } from "sonner";
 
 const otpSchema = z.object({
@@ -28,10 +37,16 @@ const otpSchema = z.object({
 type FormValues = z.infer<typeof otpSchema>;
 
 const VerifyOtp = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [isResending, setIsResending] = useState(false);
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const flow = searchParams.get("flow") || "signup";
+
+  // RTK Query mutations
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
+  const [resendOtp] = useResendOtpMutation();
 
   const {
     control,
@@ -44,32 +59,123 @@ const VerifyOtp = () => {
     },
   });
 
+  // Get email from sessionStorage on mount
+  useEffect(() => {
+    const storedEmail = sessionStorage.getItem("verifyEmail");
+    if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      toast.error("No email found. Please start the process again.");
+      router.push(flow === "reset" ? "/forgot-password" : "/signup");
+    }
+  }, [flow, router]);
+
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
+    if (!email) {
+      toast.error("No email found. Please start the process again.");
+      return;
+    }
+
     try {
-      // Simulation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("OTP:", data.otp);
-      
-      toast.success("Verification successful!");
-      
-      if (flow === "reset") {
-        // Set a short-lived cookie to allow access to reset-password page
-        document.cookie = "reset_verified=true; path=/; max-age=300; SameSite=Strict"; // 5 minutes
-        router.push("/reset-password");
+      const response = await verifyOtp({
+        email: email,
+        otp_code: data.otp,
+      }).unwrap();
+
+      if (response.success) {
+        toast.success(response.message || "Verification successful!");
+
+        if (flow === "reset") {
+          // For password reset flow, store OTP and redirect to reset password
+          sessionStorage.setItem("resetOtp", data.otp);
+          router.push("/reset-password");
+        } else {
+          // For signup flow, user is now verified and logged in
+          const { access, refresh, user } = response.data;
+
+          // Dispatch to Redux
+          dispatch(
+            setCredentials({
+              user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.account_type || "retailer",
+                account_type: user.account_type,
+              },
+              accessToken: access,
+              refreshToken: refresh,
+            }),
+          );
+
+          // Set cookies for persistence using helper function
+          setAuthCookies(
+            access,
+            refresh,
+            user.account_type || "retailer",
+            user.email,
+            user.name,
+            true, // rememberMe for signup OTP verification
+          );
+
+          // Clear sessionStorage
+          sessionStorage.removeItem("verifyEmail");
+          sessionStorage.removeItem("otpFlow");
+
+          console.log("🍪 Cookies set, redirecting to dashboard...");
+
+          // Redirect immediately
+          window.location.replace("/dashboard");
+        }
       } else {
-        router.push("/signin"); 
-      } 
-    } catch (error) {
+        toast.error(
+          response.message || "Verification failed. Please try again.",
+        );
+      }
+    } catch (error: unknown) {
       console.error("Verification failed:", error);
-      toast.error("Invalid OTP. Please try again.");
-    } finally {
-      setIsLoading(false);
+      const apiError = error as {
+        data?: { message?: string };
+        status?: number;
+      };
+      if (apiError?.data?.message) {
+        toast.error(apiError.data.message);
+      } else {
+        toast.error("Invalid OTP. Please try again.");
+      }
     }
   };
 
-  const onResend = () => {
-    toast.info("A new code has been sent to your email.");
+  const onResend = async () => {
+    if (!email) {
+      toast.error("No email found. Please start the process again.");
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      const response = await resendOtp({ email }).unwrap();
+      if (response.success) {
+        toast.success(
+          response.message || "A new code has been sent to your email.",
+        );
+      } else {
+        toast.error(response.message || "Failed to resend OTP.");
+      }
+    } catch (error: unknown) {
+      console.error("Failed to resend OTP:", error);
+      const apiError = error as {
+        data?: { message?: string };
+        status?: number;
+      };
+      if (apiError?.data?.message) {
+        toast.error(apiError.data.message);
+      } else {
+        toast.error("Failed to resend OTP. Please try again.");
+      }
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -100,44 +206,48 @@ const VerifyOtp = () => {
           }}
         >
           <CardContent className="p-8 md:p-[40px]">
-             {/* "Verify with OTP" matches uploaded_media_3. uploaded_media_1 says "Verify with Email". 
+            {/* "Verify with OTP" matches uploaded_media_3. uploaded_media_1 says "Verify with Email". 
                  I'll stick with "Verify with OTP" as general purpose. */}
             <div className="flex flex-col items-center gap-8">
               <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center">
                 Verify with OTP
               </h1>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col items-center gap-8">
-                
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full flex flex-col items-center gap-8"
+              >
                 <div className="w-full flex justify-center">
-                    <Controller
-                        control={control}
-                        name="otp"
-                        render={({ field }) => (
-                        <InputOTP maxLength={6} {...field}>
-                            <InputOTPGroup className="gap-2 md:gap-4">
-                                {/* Customizing slots to look like separate boxes */}
-                                {[...Array(6)].map((_, index) => (
-                                    <InputOTPSlot 
-                                        key={index} 
-                                        index={index} 
-                                        className="w-10 h-10 md:w-12 md:h-12 rounded-xl border border-gray-300 first:rounded-xl last:rounded-xl text-lg md:text-xl"
-                                    />
-                                ))}
-                            </InputOTPGroup>
-                        </InputOTP>
-                        )}
-                    />
+                  <Controller
+                    control={control}
+                    name="otp"
+                    render={({ field }) => (
+                      <InputOTP maxLength={6} {...field}>
+                        <InputOTPGroup className="gap-2 md:gap-4">
+                          {/* Customizing slots to look like separate boxes */}
+                          {[...Array(6)].map((_, index) => (
+                            <InputOTPSlot
+                              key={index}
+                              index={index}
+                              className="w-10 h-10 md:w-12 md:h-12 rounded-xl border border-gray-300 first:rounded-xl last:rounded-xl text-lg md:text-xl"
+                            />
+                          ))}
+                        </InputOTPGroup>
+                      </InputOTP>
+                    )}
+                  />
                 </div>
                 {errors.otp && (
-                    <p className="text-sm text-red-500 mt-[-20px]">{errors.otp.message}</p>
+                  <p className="text-sm text-red-500 mt-[-20px]">
+                    {errors.otp.message}
+                  </p>
                 )}
 
                 {/* Submit Button */}
                 <Button
                   type="submit"
                   disabled={isLoading}
-                   className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none"
+                  className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none"
                 >
                   {isLoading ? (
                     <>
@@ -149,7 +259,7 @@ const VerifyOtp = () => {
                   )}
                 </Button>
 
-                 {/* Resend Link */}
+                {/* Resend Link */}
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-base font-normal text-foreground">
                     Don&apos;t receive the OTP?
@@ -157,9 +267,10 @@ const VerifyOtp = () => {
                   <button
                     type="button"
                     onClick={onResend}
-                    className="text-base font-semibold text-primary hover:text-primary/80 hover:underline transition-colors focus:outline-none"
+                    disabled={isResending}
+                    className="text-base font-semibold text-primary hover:text-primary/80 hover:underline transition-colors focus:outline-none disabled:opacity-50"
                   >
-                    Resend
+                    {isResending ? "Sending..." : "Resend"}
                   </button>
                 </div>
               </form>
