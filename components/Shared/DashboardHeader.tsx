@@ -1,3 +1,5 @@
+/** @format */
+
 import Image from "next/image";
 import Link from "next/link";
 import { Bell } from "lucide-react";
@@ -18,33 +20,10 @@ export default function DashboardHeader({
         <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground font-zilla">
           {title}
         </h1>
-        {description && (
-          <p className="text-secondary mt-1">
-            {description}
-          </p>
-        )}
-      </div>
-
-      <div className="flex-1 flex justify-center w-full max-w-2xl px-4 md:px-12">
-        <SearchBar 
-          placeholder="Search" 
-          onSearch={onSearch} 
-          className="w-full bg-[#F5F6FA]"
-        />
+        {description && <p className="text-secondary mt-1">{description}</p>}
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Notification Icon */}
-        <Link 
-          href="/notifications"
-          className="relative p-2.5 bg-[#F5F6FA] hover:bg-gray-100 rounded-full transition-colors border border-transparent"
-          aria-label="Notifications"
-        >
-          <Bell className="w-5 h-5 text-blue-500" />
-          {/* Notification indicator dot */}
-          <span className="absolute top-2.5 right-3 w-2 h-2 bg-red-500 rounded-full border border-white translate-x-1/2 -translate-y-1/2"></span>
-        </Link>
-
         {/* User Profile */}
         <Link
           href="/profile"
@@ -63,12 +42,10 @@ export default function DashboardHeader({
             <p className="text-sm font-bold text-foreground font-nunito">
               Moni Roy
             </p>
-            <p className="text-xs text-gray-500 font-bold">
-              Admin
-            </p>
+            <p className="text-xs text-gray-500 font-bold">Admin</p>
           </div>
         </Link>
       </div>
     </div>
-  )
+  );
 }

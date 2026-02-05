@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { productStocks } from "@/data/productStockData";
@@ -25,10 +27,10 @@ export default function ProductStockTable({
 
   const totalItems = data.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  
+
   const showPagination = enablePagination && totalItems > itemsPerPage;
 
-  const currentData = showPagination 
+  const currentData = showPagination
     ? data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
     : data;
 
@@ -43,8 +45,10 @@ export default function ProductStockTable({
           Let's keep the title prop but default to empty string if not needed, or use it if we want a card title.
           In PaymentsPage, we passed title="" to the table. We will do the same here.
       */}
-      {title && <h2 className="text-xl font-bold text-foreground mb-6">{title}</h2>}
-      
+      {title && (
+        <h2 className="text-xl font-bold text-foreground mb-6">{title}</h2>
+      )}
+
       {isLoading ? (
         <TableSkeleton rowCount={itemsPerPage} />
       ) : currentData.length > 0 ? (
@@ -53,26 +57,41 @@ export default function ProductStockTable({
             <table className="w-full min-w-[800px]">
               <thead>
                 <tr className="bg-[#F1F4F9] text-left">
-                  <th className="py-4 px-6 rounded-l-xl text-foreground font-semibold text-sm">Order Id</th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">Customer Email</th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">Product Name</th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">Payment Date</th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">Amount</th>
-                  <th className="py-4 px-6 rounded-r-xl text-foreground font-semibold text-sm text-center">Action</th>
+                  <th className="py-4 px-6 rounded-l-xl text-foreground font-semibold text-sm">
+                    Order Id
+                  </th>
+                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                    Customer Email
+                  </th>
+                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                    Product Name
+                  </th>
+                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                    Payment Date
+                  </th>
+                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                    Amount
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {currentData.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-6 text-gray-600 font-medium">{item.orderId}</td>
+                  <tr
+                    key={item.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="py-4 px-6 text-gray-600 font-medium">
+                      {item.orderId}
+                    </td>
                     <td className="py-4 px-6 text-gray-600">{item.email}</td>
-                    <td className="py-4 px-6 text-gray-600">{item.productName}</td>
-                    <td className="py-4 px-6 text-gray-600">{item.paymentDate}</td>
-                    <td className="py-4 px-6 text-gray-600 font-semibold">{item.amount}</td>
-                    <td className="py-4 px-6 text-center">
-                      <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-foreground cursor-pointer">
-                         <Download className="w-6 h-6 text-gray-600" />
-                      </button>
+                    <td className="py-4 px-6 text-gray-600">
+                      {item.productName}
+                    </td>
+                    <td className="py-4 px-6 text-gray-600">
+                      {item.paymentDate}
+                    </td>
+                    <td className="py-4 px-6 text-gray-600 font-semibold">
+                      {item.amount}
                     </td>
                   </tr>
                 ))}
@@ -92,7 +111,12 @@ export default function ProductStockTable({
         </>
       ) : (
         <div className="text-center py-20 text-foreground flex flex-col items-center gap-4">
-          <Image src="/images/empty-state.webp" alt="Empty State" width={200} height={200} />
+          <Image
+            src="/images/empty-state.webp"
+            alt="Empty State"
+            width={200}
+            height={200}
+          />
           <p>No stock found.</p>
         </div>
       )}

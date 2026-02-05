@@ -1,3 +1,5 @@
+/** @format */
+
 // components/Sidebar.tsx
 "use client";
 
@@ -83,12 +85,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
         icon: ClipboardList,
         roles: ["admin"],
       },
-      {
-        label: "Product Stock",
-        href: "/stock",
-        icon: Package,
-        roles: ["admin"],
-      },
+
       {
         label: "Payment List",
         href: "/payments",
@@ -102,7 +99,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
         roles: ["admin"],
       },
     ],
-    []
+    [],
   );
 
   // Filter links based on user role
@@ -131,7 +128,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
       return false;
     },
-    [pathname]
+    [pathname],
   );
 
   // Toggle expanded state
@@ -139,7 +136,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
     setExpandedItems((prev) =>
       prev.includes(label)
         ? prev.filter((item) => item !== label)
-        : [...prev, label]
+        : [...prev, label],
     );
   }, []);
 
@@ -150,7 +147,8 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
         link.subLinks &&
         link.subLinks.some(
           (subLink) =>
-            pathname === subLink.href || pathname.startsWith(subLink.href + "/")
+            pathname === subLink.href ||
+            pathname.startsWith(subLink.href + "/"),
         )
       ) {
         if (!expandedItems.includes(link.label)) {
@@ -176,7 +174,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
       const deltaX = e.clientX - startX;
       const newWidth = Math.min(
         Math.max(startWidth + deltaX, minWidth),
-        maxWidth
+        maxWidth,
       );
 
       setSidebarWidth(newWidth);
@@ -246,18 +244,19 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
     setShowLogoutModal(false);
   };
 
-  const renderIcon = useCallback((Icon: React.ComponentType<{ className?: string }>, isActive: boolean) => {
-    return (
-      <Icon
-        className={cn(
-          "h-6 w-6 shrink-0 transition-colors duration-200",
-          isActive
-            ? "text-white"
-            : "text-gray-600"
-        )}
-      />
-    );
-  }, []);
+  const renderIcon = useCallback(
+    (Icon: React.ComponentType<{ className?: string }>, isActive: boolean) => {
+      return (
+        <Icon
+          className={cn(
+            "h-6 w-6 shrink-0 transition-colors duration-200",
+            isActive ? "text-white" : "text-gray-600",
+          )}
+        />
+      );
+    },
+    [],
+  );
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -285,9 +284,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   if (!isAuthenticated) {
     return (
       <div className="w-full min-h-screen bg-gray">
-        <div className="p-0 flex flex-col gap-2 flex-1 w-full">
-          {children}
-        </div>
+        <div className="p-0 flex flex-col gap-2 flex-1 w-full">{children}</div>
       </div>
     );
   }
@@ -296,7 +293,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
     <div
       className={cn(
         "rounded-md flex flex-col md:flex-row bg-gray w-full flex-1 mx-auto",
-        "min-h-screen md:h-screen md:overflow-hidden relative"
+        "min-h-screen md:h-screen md:overflow-hidden relative",
       )}
     >
       <div className="relative overflow-visible flex">
@@ -309,7 +306,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
           <SidebarBody
             className={cn(
               "justify-between gap-10 border-0.5",
-              "bg-white text-foreground !px-0"
+              "bg-white text-foreground !px-0",
             )}
           >
             <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
@@ -327,7 +324,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
                   const filteredSubLinks = link.subLinks?.filter(
                     (subLink) =>
-                      !subLink.roles || (role && subLink.roles.includes(role))
+                      !subLink.roles || (role && subLink.roles.includes(role)),
                   );
 
                   const shouldShowSublinks =
@@ -350,7 +347,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                         if (hasSubLinks && !isExpanded) {
                           setTimeout(() => {
                             setHoveredItem((prev) =>
-                              prev === link.label ? null : prev
+                              prev === link.label ? null : prev,
                             );
                           }, 200);
                         }
@@ -362,7 +359,9 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                         {isActive && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-primary rounded-r-full z-20 transition-all duration-300 ease-in-out" />
                         )}
-                        <div className="w-full pl-5 pr-4"> {/* Adjusted Padding/Gap: 5 (20px) from left to create separation from indicator */}
+                        <div className="w-full pl-5 pr-4">
+                          {" "}
+                          {/* Adjusted Padding/Gap: 5 (20px) from left to create separation from indicator */}
                           <Link
                             href={link.href}
                             onClick={() => {
@@ -374,7 +373,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                               "flex items-center gap-3 p-3 rounded-sm transition-all duration-300 group flex-1 relative overflow-hidden",
                               isActive
                                 ? "bg-primary text-white shadow-lg shadow-primary/20 font-semibold"
-                                : "hover:bg-gray-100 text-gray-600 font-medium hover:text-primary"
+                                : "hover:bg-gray-100 text-gray-600 font-medium hover:text-primary",
                             )}
                           >
                             <span className="shrink-0 relative z-10">
@@ -387,7 +386,9 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                               }}
                               className={cn(
                                 "text-sm whitespace-nowrap relative z-10",
-                                isActive ? "text-white" : "text-gray-600 group-hover:text-primary"
+                                isActive
+                                  ? "text-white"
+                                  : "text-gray-600 group-hover:text-primary",
                               )}
                             >
                               {link.label}
@@ -398,31 +399,33 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             )}
 
-                          {/* Expand/Collapse Button */}
-                          {hasSubLinks && open && (
-                            <div className="ml-auto relative z-10">
-                              <div
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  toggleExpanded(link.label);
-                                }}
-                                className={cn(
-                                  "p-1 rounded-full transition-all duration-200 hover:bg-black/10",
-                                  isActive ? "text-white" : "text-gray-400 group-hover:text-primary"
-                                )}
-                              >
-                                {isExpanded ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )}
+                            {/* Expand/Collapse Button */}
+                            {hasSubLinks && open && (
+                              <div className="ml-auto relative z-10">
+                                <div
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleExpanded(link.label);
+                                  }}
+                                  className={cn(
+                                    "p-1 rounded-full transition-all duration-200 hover:bg-black/10",
+                                    isActive
+                                      ? "text-white"
+                                      : "text-gray-400 group-hover:text-primary",
+                                  )}
+                                >
+                                  {isExpanded ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </Link>
+                            )}
+                          </Link>
+                        </div>
                       </div>
-                    </div>
 
                       {/* Sub Links Container */}
                       {shouldShowSublinks && (
@@ -439,7 +442,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                             if (!isExpanded) {
                               setTimeout(() => {
                                 setHoveredItem((prev) =>
-                                  prev === link.label ? null : prev
+                                  prev === link.label ? null : prev,
                                 );
                               }, 200);
                             }
@@ -463,7 +466,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                                   "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 text-sm",
                                   isSubLinkActive
                                     ? "bg-gradient-purple text-white font-bold"
-                                    : "text-secondary hover:text-primary hover:bg-gray-50"
+                                    : "text-secondary hover:text-primary hover:bg-gray-50",
                                 )}
                               >
                                 <span className="text-sm whitespace-pre">
@@ -515,7 +518,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                       <p
                         className={cn(
                           "text-sm truncate",
-                          getRoleBadgeColor(role || "customer")
+                          getRoleBadgeColor(role || "customer"),
                         )}
                       >
                         {getRoleDisplayName(role || "customer")}
@@ -552,7 +555,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
           onClick={handleToggleClick}
           className={cn(
             "absolute hidden md:flex top-4 z-20 cursor-pointer p-2 rounded-full bg-gray border border-gray-300 shadow-none hover:bg-gray-50 transition-all duration-200",
-            open ? "-right-4" : "-right-4"
+            open ? "-right-4" : "-right-4",
           )}
         >
           {open ? (

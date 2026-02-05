@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { useState } from "react";
@@ -48,7 +50,7 @@ export const SignInForm = () => {
     try {
       // Mock login request - Replace with actual API call
       // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, { ... });
-      
+
       // Simulating network delay for now
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -65,7 +67,7 @@ export const SignInForm = () => {
         setCredentials({
           user: mockUser,
           token: mockToken,
-        })
+        }),
       );
 
       // Set cookies for persistence
@@ -122,10 +124,16 @@ export const SignInForm = () => {
                 Login
               </h1>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-4">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full flex flex-col gap-4"
+              >
                 {/* Email Field */}
                 <div className="space-y-3">
-                  <Label htmlFor="email" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="email"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Email
                   </Label>
                   <Input
@@ -133,18 +141,25 @@ export const SignInForm = () => {
                     type="email"
                     placeholder="Enter your email..."
                     className={`h-14 rounded-xl text-base ${
-                      errors.email ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                      errors.email
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : "text-foreground border-[#3B3B3B]"
                     }`}
                     {...register("email")}
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-500">{errors.email.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Password Field */}
                 <div className="space-y-3">
-                  <Label htmlFor="password" className="text-xl font-normal text-foreground">
+                  <Label
+                    htmlFor="password"
+                    className="text-xl font-normal text-foreground"
+                  >
                     Password
                   </Label>
                   <div className="relative">
@@ -153,7 +168,9 @@ export const SignInForm = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password.."
                       className={`h-14 rounded-xl text-base pr-12 ${
-                        errors.password ? "border-red-500 focus-visible:ring-red-500" : "text-foreground border-[#3B3B3B]"
+                        errors.password
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : "text-foreground border-[#3B3B3B]"
                       }`}
                       {...register("password")}
                     />
@@ -170,39 +187,40 @@ export const SignInForm = () => {
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-sm text-red-500">{errors.password.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Remember & Forgot Password */}
                 <div className="flex items-center justify-between">
-                    <Controller
-                      name="rememberMe"
-                      control={control}
-                      render={({ field }) => (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="rememberMe"
-                            className="w-5 h-5 md:w-6 md:h-6 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                          <Label
-                            htmlFor="rememberMe"
-                            className="text-base font-normal text-foreground cursor-pointer select-none"
-                          >
-                            Remember
-                          </Label>
-                        </div>
-                      )}
-                    />
-
-                  <Link
+                  <Controller
+                    name="rememberMe"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="rememberMe"
+                          className="w-5 h-5 md:w-6 md:h-6 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label
+                          htmlFor="rememberMe"
+                          className="text-base font-normal text-foreground cursor-pointer select-none"
+                        >
+                          Remember
+                        </Label>
+                      </div>
+                    )}
+                  />
+                  {/* <Link
                     href="/forgot-password"
                     className="text-base font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
                   >
                     Forget Password?
-                  </Link>
+                  </Link> */}
                 </div>
 
                 {/* Submit Button */}
@@ -222,7 +240,7 @@ export const SignInForm = () => {
                 </Button>
 
                 {/* Sign Up Link */}
-                <div className="flex items-center justify-center gap-2 mt-2">
+                {/* <div className="flex items-center justify-center gap-2 mt-2">
                   <span className="text-base font-normal text-foreground">
                     Don&apos;t have account?
                   </span>
@@ -232,7 +250,7 @@ export const SignInForm = () => {
                   >
                     Sign Up Now
                   </Link>
-                </div>
+                </div> */}
               </form>
             </div>
           </CardContent>
