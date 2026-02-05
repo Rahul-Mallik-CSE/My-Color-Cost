@@ -13,15 +13,15 @@ export default function DashboardPage() {
     <div className="flex flex-col min-h-screen">
       <DashboardHeader title="Retailer Dashboard" />
 
-      <div className="p-4 md:p-8 flex flex-col gap-8">
+      <div className="p-4 md:p-8 flex flex-col gap-4 sm:gap-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {statsData.map((data, index) => (
             <StatsCard key={index} {...data} />
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-8">
           {/* Sales Chart */}
           <SalesDetailsChart />
 
