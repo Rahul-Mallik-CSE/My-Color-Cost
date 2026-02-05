@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import {
@@ -37,24 +39,26 @@ const data = [
 
 export default function SalesDetailsChart() {
   return (
-    <div className="bg-white p-6 rounded-3xl shadow-[6px_6px_54px_0px_#0000000D] w-full h-[450px] flex flex-col">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-xl font-bold text-foreground">Sales Details</h2>
+    <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-[6px_6px_54px_0px_#0000000D] w-full h-[300px] sm:h-[450px] flex flex-col">
+      <div className="flex justify-between items-center mb-4 sm:mb-8">
+        <h2 className="text-lg sm:text-xl font-bold text-foreground">
+          Sales Details
+        </h2>
         <div className="relative">
-             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
-               October <ChevronDown className="w-4 h-4" />
-             </button>
+          <button className="flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-2 bg-white border border-border rounded-lg text-xs sm:text-sm text-gray-600 hover:bg-gray-50">
+            October <ChevronDown className="w-4 h-4" />
+          </button>
         </div>
       </div>
-      
-      <div className="w-full h-[350px]">
+
+      <div className="w-full h-[250px] sm:h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
             margin={{
               top: 10,
               right: 10,
-              left: -20,
+              left: -10,
               bottom: 0,
             }}
           >
@@ -64,22 +68,30 @@ export default function SalesDetailsChart() {
                 <stop offset="95%" stopColor="#4880FF" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="#EAEAEA" strokeDasharray="3 3" />
-            <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#6B7280', fontSize: 12 }}
-                dy={10}
+            <CartesianGrid
+              vertical={false}
+              stroke="#EAEAEA"
+              strokeDasharray="3 3"
             />
-            <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#6B7280', fontSize: 12 }}
-                tickFormatter={(value) => `${value}%`}
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#6B7280", fontSize: 12 }}
+              dy={10}
             />
-            <Tooltip 
-                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0px 4px 20px rgba(0,0,0,0.1)' }}
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#6B7280", fontSize: 12 }}
+              tickFormatter={(value) => `${value}%`}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: "10px",
+                border: "none",
+                boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
+              }}
             />
             <Area
               type="monotone"
@@ -88,7 +100,7 @@ export default function SalesDetailsChart() {
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorValue)"
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#4880FF' }}
+              activeDot={{ r: 6, strokeWidth: 0, fill: "#4880FF" }}
             />
           </AreaChart>
         </ResponsiveContainer>

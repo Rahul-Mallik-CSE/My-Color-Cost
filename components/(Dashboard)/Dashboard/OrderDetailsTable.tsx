@@ -48,9 +48,11 @@ export default function OrderDetailsTable({
     : data;
 
   return (
-    <div className="bg-white p-6 rounded-3xl shadow-[6px_6px_54px_0px_#0000000D] w-full">
+    <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-[6px_6px_54px_0px_#0000000D] w-full">
       {title && (
-        <h2 className="text-xl font-bold text-foreground mb-6">{title}</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6">
+          {title}
+        </h2>
       )}
 
       {isLoading ? (
@@ -58,26 +60,26 @@ export default function OrderDetailsTable({
       ) : currentData.length > 0 ? (
         <>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
+            <table className="w-full min-w-[600px] sm:min-w-[800px]">
               <thead>
                 <tr className="bg-[#F1F4F9] text-left">
-                  <th className="py-4 px-6 rounded-l-xl text-foreground font-semibold text-sm">
+                  <th className="py-3 px-4 sm:py-4 sm:px-6 rounded-l-xl text-foreground font-semibold text-sm">
                     Product Name
                   </th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                  <th className="py-3 px-4 sm:py-4 sm:px-6 text-foreground font-semibold text-sm">
                     Location
                   </th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                  <th className="py-3 px-4 sm:py-4 sm:px-6 text-foreground font-semibold text-sm">
                     Date - Time
                   </th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                  <th className="py-3 px-4 sm:py-4 sm:px-6 text-foreground font-semibold text-sm">
                     Quantity
                   </th>
-                  <th className="py-4 px-6 text-foreground font-semibold text-sm">
+                  <th className="py-3 px-4 sm:py-4 sm:px-6 text-foreground font-semibold text-sm">
                     Amount
                   </th>
 
-                  <th className="py-4 px-6 rounded-r-xl text-foreground font-semibold text-sm text-center">
+                  <th className="py-3 px-4 sm:py-4 sm:px-6 rounded-r-xl text-foreground font-semibold text-sm text-center">
                     Status
                   </th>
                 </tr>
@@ -88,22 +90,24 @@ export default function OrderDetailsTable({
                     key={order.id}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="py-4 px-6 text-gray-600 font-medium">
+                    <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600 font-medium">
                       {order.productName}
                     </td>
-                    <td className="py-4 px-6 text-gray-600">
+                    <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
                       {order.location}
                     </td>
-                    <td className="py-4 px-6 text-gray-600">
+                    <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
                       {order.dateTime}
                     </td>
-                    <td className="py-4 px-6 text-gray-600">{order.piece}</td>
-                    <td className="py-4 px-6 text-gray-600 font-semibold">
+                    <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
+                      {order.piece}
+                    </td>
+                    <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600 font-semibold">
                       {order.amount}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-4 sm:py-4 sm:px-6">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}
+                        className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}
                       >
                         {order.status}
                       </span>
@@ -125,12 +129,13 @@ export default function OrderDetailsTable({
           )}
         </>
       ) : (
-        <div className="text-center py-20 text-foreground flex flex-col items-center gap-4">
+        <div className="text-center py-10 sm:py-20 text-foreground flex flex-col items-center gap-4">
           <Image
             src="/images/empty-state.webp"
             alt="Empty State"
-            width={200}
-            height={200}
+            width={150}
+            height={150}
+            className="sm:w-[200px] sm:h-[200px]"
           />
           <p>No order found.</p>
         </div>
