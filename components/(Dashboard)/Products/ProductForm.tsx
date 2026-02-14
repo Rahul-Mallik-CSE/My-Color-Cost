@@ -11,7 +11,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   useCreateProductMutation,
@@ -31,6 +31,7 @@ export default function ProductForm({
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialData?.image || null,
   );
+  const [newImageSelected, setNewImageSelected] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // API mutations
@@ -41,6 +42,7 @@ export default function ProductForm({
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -50,14 +52,24 @@ export default function ProductForm({
       price: initialData?.price || 0,
       // stock: initialData?.stock?.toString() || "",
       availableProduct: initialData?.availableProduct || 0,
+      image: undefined,
     },
   });
 
   const isSubmitting = isCreating || isUpdating;
 
+  // Sync imagePreview with initialData only if user hasn't selected a new image
+  useEffect(() => {
+    if (initialData?.image && !newImageSelected) {
+      setImagePreview(initialData.image);
+    }
+  }, [initialData?.image, newImageSelected]);
+
   const onSubmit = async (data: ProductFormValues) => {
     try {
       console.log("📝 Form data:", data);
+      console.log("🔍 Image in form data:", data.image);
+      console.log("🔍 New image selected flag:", newImageSelected);
 
       // Validate required fields
       if (!data.title) {
@@ -84,8 +96,21 @@ export default function ProductForm({
       console.log("📤 Sending to API:", {
         ...productData,
         image: productData.image
-          ? `File: ${productData.image.name}`
-          : "No image",
+          ? `File: ${productData.image.name}, ${productData.image.size} bytes`
+          : "No image - undefined",
+        isNewImage: newImageSelected,
+      });
+
+      // Log FormData contents for debugging
+      console.log("🔍 ProductData object:", {
+        name: productData.name,
+        description: productData.description,
+        market_price: productData.market_price,
+        quantity: productData.quantity,
+        hasImage: !!productData.image,
+        imageType: productData.image ? typeof productData.image : "undefined",
+        imageInstance:
+          productData.image instanceof File ? "File" : "Not a File",
       });
 
       if (isEditing && initialData) {
@@ -95,6 +120,7 @@ export default function ProductForm({
         }).unwrap();
         console.log("✅ Update response:", result);
         toast.success("Product updated successfully!");
+        setNewImageSelected(false); // Reset after successful update
       } else {
         const result = await createProduct(productData).unwrap();
         console.log("✅ Create response:", result);
@@ -126,7 +152,10 @@ export default function ProductForm({
       }
       const url = URL.createObjectURL(file);
       setImagePreview(url);
-      setValue("image", file);
+      setValue("image", file, { shouldValidate: true, shouldDirty: true });
+      setNewImageSelected(true);
+      console.log("🖼️ New image selected:", file.name, file.size, "bytes");
+      console.log("🖼️ Form image value after setValue:", watch("image"));
     }
   };
 
@@ -135,9 +164,11 @@ export default function ProductForm({
     e.stopPropagation();
     setImagePreview(null);
     setValue("image", undefined);
+    setNewImageSelected(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    console.log("🗑️ Image removed");
   };
 
   const triggerFileInput = () => {

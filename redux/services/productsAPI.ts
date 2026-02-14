@@ -104,8 +104,21 @@ export const productsAPI = apiSlice.injectEndpoints({
         formData.append("description", data.description);
         formData.append("market_price", data.market_price);
         formData.append("quantity", data.quantity.toString());
+
+        console.log("🔧 API Mutation - updateProduct:", {
+          id,
+          hasImage: !!data.image,
+          imageType: data.image ? typeof data.image : "undefined",
+          imageIsFile: data.image instanceof File,
+          imageName: data.image?.name,
+          imageSize: data.image?.size,
+        });
+
         if (data.image) {
           formData.append("image", data.image);
+          console.log("✅ Image appended to FormData");
+        } else {
+          console.log("⚠️ No image to append");
         }
 
         return {
