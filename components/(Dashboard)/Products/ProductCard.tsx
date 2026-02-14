@@ -53,6 +53,12 @@ export default function ProductCard({
         >
           {product.title}
         </h3>
+        <h6
+          className="font-normal text-foreground text-xs sm:text-sm line-clamp-1"
+          title={product.title}
+        >
+          {product.description}
+        </h6>
 
         {/* Price and Rating Row */}
         <div className="flex flex-col gap-1">

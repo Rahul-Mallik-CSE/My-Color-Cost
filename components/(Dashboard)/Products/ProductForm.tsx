@@ -145,6 +145,23 @@ export default function ProductForm({
                   )}
                 </div>
 
+                {/* Title */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Product Description
+                  </label>
+                  <input
+                    {...register("desc")}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-gray-400 font-medium"
+                    placeholder="Write description here... "
+                  />
+                  {errors.title && (
+                    <p className="text-red-500 text-sm">
+                      {errors.title.message}
+                    </p>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {/* Price */}
                   <div className="space-y-2">
