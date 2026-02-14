@@ -330,7 +330,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
             )}
           >
             <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-              <div className="flex items-center justify-center my-6 px-4">
+              <div className="flex items-center justify-center my-4 px-2">
                 <Logo open={open} />
               </div>
 
@@ -610,7 +610,7 @@ const Logo = ({ open }: { open: boolean }) => {
       <motion.div
         initial={false}
         animate={{
-          width: open ? "80px" : "40px",
+          width: open ? "180px" : "40px",
           height: open ? "auto" : "40px",
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -619,9 +619,9 @@ const Logo = ({ open }: { open: boolean }) => {
         <Image
           className="w-full h-full object-contain"
           alt="Logo"
-          src="/icons/logo.svg"
-          width={open ? 80 : 40}
-          height={open ? 80 : 40}
+          src="/color-cost-logo.png"
+          width={open ? 900 : 30}
+          height={open ? 900 : 40}
           priority
         />
       </motion.div>
