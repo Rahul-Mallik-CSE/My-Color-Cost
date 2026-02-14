@@ -1,3 +1,5 @@
+/** @format */
+
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
@@ -114,10 +116,10 @@ const withPWA = withPWAInit({
       },
       // Cache navigation routes to ensure offline navigation works
       {
-        urlPattern: ({ request }: any) => request.mode === 'navigate',
-        handler: 'NetworkFirst',
+        urlPattern: ({ request }: any) => request.mode === "navigate",
+        handler: "NetworkFirst",
         options: {
-          cacheName: 'pages',
+          cacheName: "pages",
           expiration: {
             maxEntries: 32,
             maxAgeSeconds: 24 * 60 * 60, // 24 hours
@@ -135,6 +137,35 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   // Add empty turbopack config to silence the warning
   turbopack: {},
+  // Configure external image domains
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "10.10.12.14",
+        port: "8000",
+        pathname: "/media/**",
+      },
+      {
+        protocol: "http",
+        hostname: "10.10.12.15",
+        port: "8089",
+        pathname: "/api/v1/media/**",
+      },
+      {
+        protocol: "http",
+        hostname: "10.10.12.15",
+        port: "8001",
+        pathname: "/media/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+        pathname: "/media/**",
+      },
+    ],
+  },
   // Your other config options here
 };
 

@@ -18,7 +18,6 @@ import {
   LayoutGrid,
   ShoppingBag,
   ClipboardList,
-  Package,
   CreditCard,
   Settings,
 } from "lucide-react";
@@ -50,6 +49,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const { name, role, isAuthenticated, logout } = useUser();
 
   // State management
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(290);
   const [isResizing, setIsResizing] = useState(false);
@@ -63,6 +63,12 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
   const minWidth = 83;
   const maxWidth = 400;
+
+  // Prevent hydration issues by only rendering motion components after mount
+  // This is a standard pattern for Next.js to avoid SSR/client mismatches
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Navigation links configuration
   const links: LinkType[] = useMemo(
@@ -293,14 +299,24 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
     );
   }
 
+  // Prevent hydration mismatch - render simple version on server
+  if (!mounted) {
+    return (
+      <div className="w-full min-h-screen bg-gray">
+        <div className="p-0 flex flex-col gap-2 flex-1 w-full">{children}</div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
         "rounded-md flex flex-col md:flex-row bg-gray w-full flex-1 mx-auto",
         "min-h-screen md:h-screen md:overflow-hidden relative",
       )}
+      suppressHydrationWarning
     >
-      <div className="relative overflow-visible flex">
+      <div className="relative overflow-visible flex" suppressHydrationWarning>
         <Sidebar
           open={open}
           setOpen={setOpen}
@@ -310,7 +326,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
           <SidebarBody
             className={cn(
               "justify-between gap-10 border-0.5",
-              "bg-white text-foreground !px-0",
+              "bg-white text-foreground px-0!",
             )}
           >
             <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
@@ -384,6 +400,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                               {renderIcon(link.icon, isActive)}
                             </span>
                             <motion.span
+                              initial={false}
                               animate={{
                                 display: open ? "inline-block" : "none",
                                 opacity: open ? 1 : 0,
@@ -434,7 +451,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                       {/* Sub Links Container */}
                       {shouldShowSublinks && (
                         <motion.div
-                          initial={{ height: 0, opacity: 0 }}
+                          initial={false}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2 }}
@@ -510,6 +527,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                       />
                     </div>
                     <motion.div
+                      initial={false}
                       animate={{
                         display: open ? "block" : "none",
                         opacity: open ? 1 : 0,
@@ -530,6 +548,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                     </motion.div>
                   </Link>
                   <motion.button
+                    initial={false}
                     onClick={handleLogoutClick}
                     animate={{
                       display: open ? "block" : "none",
@@ -584,8 +603,12 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
 const Logo = ({ open }: { open: boolean }) => {
   return (
-    <div className="font-normal flex items-center text-sm relative z-20 w-full justify-center">
+    <div
+      className="font-normal flex items-center text-sm relative z-20 w-full justify-center"
+      suppressHydrationWarning
+    >
       <motion.div
+        initial={false}
         animate={{
           width: open ? "80px" : "40px",
           height: open ? "auto" : "40px",

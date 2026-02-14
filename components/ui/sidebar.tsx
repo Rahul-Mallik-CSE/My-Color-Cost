@@ -1,3 +1,5 @@
+/** @format */
+
 // src/components/ui/sidebar.tsx
 "use client";
 import { cn } from "@/lib/utils";
@@ -21,7 +23,7 @@ interface SidebarContextProps {
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(
-  undefined
+  undefined,
 );
 
 export const useSidebar = () => {
@@ -104,8 +106,9 @@ export const DesktopSidebar = ({
     <motion.div
       className={cn(
         "h-full px-4 py-4 hidden md:flex md:flex-col bg-gray shrink-0",
-        className
+        className,
       )}
+      initial={false}
       animate={{
         width: animate
           ? open
@@ -133,7 +136,7 @@ export const MobileSidebar = ({
     <>
       <div
         className={cn(
-          "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-gray w-full"
+          "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-gray w-full",
         )}
         {...props}
       >
@@ -164,7 +167,7 @@ export const MobileSidebar = ({
                 }}
                 className={cn(
                   "fixed h-full w-75 inset-y-0 left-0 bg-white p-10 z-100 flex flex-col justify-between shadow-xl",
-                  className
+                  className,
                 )}
               >
                 <div
@@ -210,7 +213,7 @@ export const SidebarLink = ({
         isActive
           ? "bg-neutral-200 text-foreground"
           : "hover:bg-neutral-200 text-foreground",
-        className
+        className,
       )}
       onClick={handleClick}
       {...props}
@@ -218,6 +221,7 @@ export const SidebarLink = ({
       <span className="mt-1.5"> {link.icon}</span>
 
       <motion.span
+        initial={false}
         animate={{
           display: animate ? (open ? "flex" : "none") : "flex",
           opacity: animate ? (open ? 1 : 0) : 1,

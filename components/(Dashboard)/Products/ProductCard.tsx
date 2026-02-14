@@ -32,6 +32,7 @@ export default function ProductCard({
           alt={product.title}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
+          unoptimized
         />
         {/* Delete Button - Absolute positioned */}
         <button
@@ -46,6 +47,7 @@ export default function ProductCard({
       </div>
 
       {/* Content */}
+
       <div className="flex flex-col flex-1 gap-2">
         <h3
           className="font-semibold text-foreground text-base sm:text-lg line-clamp-1"

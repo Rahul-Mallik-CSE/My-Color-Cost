@@ -1,27 +1,21 @@
+/** @format */
+
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use } from "react";
 import ProductForm from "@/components/(Dashboard)/Products/ProductForm";
-import { productsData } from "@/data/productsData";
-import { Product } from "@/types/product";
+import { useGetProductQuery } from "@/redux/services/productsAPI";
 
-export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditProductPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
-  const [product, setProduct] = useState<Product | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
+  const { data: product, isLoading, error } = useGetProductQuery(id);
 
-  useEffect(() => {
-    // Simulate fetching data
-    if (id) {
-       // In a real app this would be an API call
-       const found = productsData.find(p => p.id === id);
-       setProduct(found);
-    }
-    setLoading(false);
-  }, [id]);
-
-  if (loading) return <div>Loading...</div>;
-  if (!product && !loading) return <div>Product not found</div>;
+  if (isLoading) return <div className="p-8">Loading...</div>;
+  if (error || !product) return <div className="p-8">Product not found</div>;
 
   return (
     <div className="p-4 md:p-8">

@@ -147,7 +147,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${geistMono.variable} ${nunito.variable} ${zilla.variable} antialiased bg-background font-sans`}
+        className={`${inter.variable} ${geistMono.variable} ${nunito.variable} ${zilla.variable} antialiased bg-background font-sans `}
         suppressHydrationWarning
       >
         <ThemeProvider

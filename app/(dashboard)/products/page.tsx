@@ -7,7 +7,6 @@ import DashboardHeader from "@/components/Shared/DashboardHeader";
 import ProductCard from "@/components/(Dashboard)/Products/ProductCard";
 import { Pagination } from "@/components/Shared/Pagination";
 import { DeleteConfirmationModal } from "@/components/Shared/DeleteConfirmationModal";
-import { productsData } from "@/data/productsData";
 import { Product } from "@/types/product";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -15,35 +14,35 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import { ProductGridSkeleton } from "@/components/Skeleton/ProductGridSkeleton";
-import { useEffect } from "react";
+import {
+  useGetAllProductsQuery,
+  useDeleteProductMutation,
+} from "@/redux/services/productsAPI";
 
 const ITEMS_PER_PAGE = 12;
 
 export default function ProductsPage() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
-  const [products, setProducts] = useState<Product[]>(productsData);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Simulate initial loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Fetch products from API
+  const { data, isLoading, isFetching, error } = useGetAllProductsQuery({
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+  });
 
-  const filteredProducts = products.filter((p) =>
-    p.title.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  // Delete mutation
+  const [deleteProduct] = useDeleteProductMutation();
 
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  // Filter products based on search query
+  const filteredProducts =
+    data?.products.filter((p) =>
+      p.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    ) || [];
+
+  const totalPages = Math.ceil((data?.totalCount || 0) / ITEMS_PER_PAGE);
 
   const handleDeleteClick = (id: string) => {
     setProductToDelete(id);
@@ -51,10 +50,14 @@ export default function ProductsPage() {
 
   const handleConfirmDelete = async () => {
     if (productToDelete) {
-      // Simulate API delete
-      setProducts((prev) => prev.filter((p) => p.id !== productToDelete));
-      setProductToDelete(null);
-      toast.success("Product deleted successfully");
+      try {
+        await deleteProduct(productToDelete).unwrap();
+        toast.success("Product deleted successfully");
+        setProductToDelete(null);
+      } catch (error) {
+        toast.error("Failed to delete product. Please try again.");
+        console.error("Delete error:", error);
+      }
     }
   };
 
@@ -83,12 +86,19 @@ export default function ProductsPage() {
           </Link>
         </div>
 
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-10 text-red-500">
+            Failed to load products. Please try again.
+          </div>
+        )}
+
         {/* Product Grid */}
-        {isLoading ? (
+        {isLoading || isFetching ? (
           <ProductGridSkeleton count={ITEMS_PER_PAGE} />
-        ) : paginatedProducts.length > 0 ? (
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
-            {paginatedProducts.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -110,17 +120,19 @@ export default function ProductsPage() {
         )}
 
         {/* Pagination */}
-        {!isLoading && filteredProducts.length > ITEMS_PER_PAGE && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={filteredProducts.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            currentItemsCount={paginatedProducts.length}
-            className="mt-4 bg-white rounded-xl shadow-sm border-none"
-          />
-        )}
+        {!isLoading &&
+          !isFetching &&
+          (data?.totalCount || 0) > ITEMS_PER_PAGE && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={data?.totalCount || 0}
+              itemsPerPage={ITEMS_PER_PAGE}
+              currentItemsCount={filteredProducts.length}
+              className="mt-4 bg-white rounded-xl shadow-sm border-none"
+            />
+          )}
       </div>
 
       {/* Delete Modal */}

@@ -3,6 +3,7 @@
 // redux/services/apiSlice.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { RootState } from "../store";
+import { getCookie } from "@/lib/utils";
 
 // Define the base URL for your API
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -18,12 +19,14 @@ export const apiSlice = createApi({
     mode: "cors", // Enable CORS mode
     // Prepare headers with authentication token
     prepareHeaders: (headers, { getState }) => {
-      // Get token from state or cookies
+      // Get token from Redux state first
       const state = getState() as RootState;
-      const token = state.auth.accessToken;
+      let token = state.auth.accessToken;
 
-      // Set content type
-      headers.set("Content-Type", "application/json");
+      // If no token in state, try to get from cookies as fallback
+      if (!token) {
+        token = getCookie("accessToken");
+      }
 
       // If we have a token, include it in the headers
       if (token) {
@@ -39,7 +42,7 @@ export const apiSlice = createApi({
     },
   }),
   // Define tag types for cache invalidation
-  tagTypes: ["User", "Auth"],
+  tagTypes: ["User", "Auth", "Product"],
   // Define endpoints in separate files and inject them here
   endpoints: () => ({}),
 });

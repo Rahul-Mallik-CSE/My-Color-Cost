@@ -6,13 +6,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, ProductFormValues } from "@/lib/schemas";
 import { Product } from "@/types/product";
-import { UploadCloud, ArrowLeft, X, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, X, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
+import {
+  useCreateProductMutation,
+  useUpdateProductMutation,
+} from "@/redux/services/productsAPI";
 
 interface ProductFormProps {
   initialData?: Product;
@@ -29,36 +33,87 @@ export default function ProductForm({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // API mutations
+  const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       title: initialData?.title || "",
+      desc: initialData?.description || "",
       price: initialData?.price || 0,
-      stock: initialData?.stock?.toString() || "",
+      // stock: initialData?.stock?.toString() || "",
       availableProduct: initialData?.availableProduct || 0,
     },
   });
 
+  const isSubmitting = isCreating || isUpdating;
+
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Form Data:", data);
+      console.log("📝 Form data:", data);
 
-      toast.success(
-        isEditing
-          ? "Product updated successfully!"
-          : "Product created successfully!",
-      );
+      // Validate required fields
+      if (!data.title) {
+        toast.error("Product name is required");
+        return;
+      }
+      if (!data.price || data.price <= 0) {
+        toast.error("Valid price is required");
+        return;
+      }
+      if (data.availableProduct === undefined || data.availableProduct < 0) {
+        toast.error("Valid quantity is required");
+        return;
+      }
+
+      const productData = {
+        name: data.title,
+        description: data.desc || "",
+        market_price: data.price.toString(),
+        quantity: data.availableProduct,
+        image: data.image as File | undefined,
+      };
+
+      console.log("📤 Sending to API:", {
+        ...productData,
+        image: productData.image
+          ? `File: ${productData.image.name}`
+          : "No image",
+      });
+
+      if (isEditing && initialData) {
+        const result = await updateProduct({
+          id: initialData.id,
+          ...productData,
+        }).unwrap();
+        console.log("✅ Update response:", result);
+        toast.success("Product updated successfully!");
+      } else {
+        const result = await createProduct(productData).unwrap();
+        console.log("✅ Create response:", result);
+        toast.success("Product created successfully!");
+      }
+
       router.push("/products");
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      console.error("❌ Error submitting product:", error);
+      const errorMessage =
+        error &&
+        typeof error === "object" &&
+        "data" in error &&
+        typeof error.data === "object" &&
+        error.data &&
+        "message" in error.data
+          ? String(error.data.message)
+          : "Something went wrong. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -188,7 +243,7 @@ export default function ProductForm({
                   </div>
 
                   {/* Stock Status */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">
                       Stock Status
                     </label>
@@ -224,7 +279,7 @@ export default function ProductForm({
                         {errors.stock.message}
                       </p>
                     )}
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Available Quantity */}
@@ -281,6 +336,7 @@ export default function ProductForm({
                     alt="Preview"
                     fill
                     className="object-contain p-2"
+                    unoptimized
                   />
 
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
@@ -315,7 +371,8 @@ export default function ProductForm({
           <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-gray-100/50">
             <div className="flex flex-col gap-3">
               <button
-                onClick={handleSubmit(onSubmit)}
+                type="submit"
+                form="product-form"
                 disabled={isSubmitting}
                 className="w-full py-3 px-4 sm:py-3.5 sm:px-6 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
