@@ -35,26 +35,7 @@ export function StatsCard({
           </div>
         </div>
 
-        {(percentage || subtitle) && (
-          <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm mt-auto">
-            <div
-              className={cn(
-                "flex items-center gap-1 font-semibold font-nunito",
-                isUp ? "text-[#00B69B]" : "text-[#F93C65]",
-              )}
-            >
-              {isUp ? (
-                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-              ) : (
-                <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />
-              )}
-              <span>{percentage}</span>
-            </div>
-            <span className="text-gray-500 text-xs sm:text-sm whitespace-nowrap font-nunito">
-              {subtitle}
-            </span>
-          </div>
-        )}
+        
       </div>
 
       {/* Dynamic Icon Rendering */}
