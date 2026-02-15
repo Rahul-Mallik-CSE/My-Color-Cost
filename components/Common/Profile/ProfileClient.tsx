@@ -3,187 +3,147 @@
 // components\Dashboard\Profile\ProfileClient.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Pencil } from "lucide-react";
+import { Pencil, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import NotificationsClient from "@/components/Notifications/NotificationsClient";
-
-interface UserProfile {
-  name: string;
-  fullName: string;
-  email: string;
-  role: string;
-  phone: string;
-  address: string;
-  avatar?: string;
-}
-
-const MOCK_USER: UserProfile = {
-  name: "Nayon",
-  fullName: "Nrb Nayon",
-  email: "nrbnayon@gmail.com",
-  role: "Super Admin",
-  phone: "000-0000-000",
-  address: "123 Admin Street, Dhaka",
-};
+import {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+} from "@/redux/services/settingAPI";
+import { getFullImageUrl } from "@/lib/utils";
 
 export default function ProfileClient() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  // API hooks
+  const { data: profileData, isLoading, refetch } = useGetProfileQuery();
+  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+
   const [activeSection, setActiveSection] = useState<
     "account" | "notifications" | "language"
   >("account");
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
-  const [showEmail, setShowEmail] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
-  const [user, setUser] = useState<UserProfile>(MOCK_USER);
-  const [editNameValue, setEditNameValue] = useState(user.fullName);
-  const [editPhoneValue, setEditPhoneValue] = useState(user.phone);
-  const [editAddressValue, setEditAddressValue] = useState(user.address);
-  const [passwordData, setPasswordData] = useState({
-    current: "",
-    new: "",
-    confirm: "",
-  });
+  // Edit values
+  const [editNameValue, setEditNameValue] = useState("");
+  const [editPhoneValue, setEditPhoneValue] = useState("");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [hasChanges, setHasChanges] = useState(false);
-  const [popUpNotification, setPopUpNotification] = useState(true);
-  const [chatNotification, setChatNotification] = useState(true);
-  const [newUpdateNotification, setNewUpdateNotification] = useState(false);
 
-  useEffect(() => {
-    // Simulate loading user data
-    const timer = setTimeout(() => {
-      setUser(MOCK_USER);
-      setEditNameValue(MOCK_USER.fullName);
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Invalid file type", {
+          description: "Please select an image file.",
+        });
+        return;
+      }
 
-  const handleSaveName = () => {
-    if (!editNameValue.trim()) {
-      toast.error("Name is required", {
-        description: "Please enter a valid name.",
-      });
-      return;
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File too large", {
+          description: "Please select an image smaller than 5MB.",
+        });
+        return;
+      }
+
+      setSelectedImage(file);
+      setHasChanges(true);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
+  };
 
-    if (editNameValue.length > 32) {
-      toast.error("Name too long", {
-        description: "Name must be 32 characters or less.",
-      });
-      return;
-    }
-
-    setUser({
-      ...user,
-      name: editNameValue.split(" ")[0] || editNameValue,
-      fullName: editNameValue,
-    });
-    setIsEditingName(false);
-    setHasChanges(true);
-    toast.success("Name updated", {
-      description: "Your name has been updated successfully.",
-    });
+  const handleEditName = () => {
+    setEditNameValue(profileData?.name || "");
+    setIsEditingName(true);
   };
 
   const handleCancelName = () => {
-    setEditNameValue(user.fullName);
+    setEditNameValue(profileData?.name || "");
     setIsEditingName(false);
   };
 
-  const handleSavePhone = () => {
-    if (!editPhoneValue.trim()) {
-      toast.error("Phone number is required");
-      return;
-    }
-    setUser({ ...user, phone: editPhoneValue });
-    setIsEditingPhone(false);
-    setHasChanges(true);
-    toast.success("Phone number updated");
+  const handleEditPhone = () => {
+    setEditPhoneValue(profileData?.contact_number || "");
+    setIsEditingPhone(true);
   };
 
   const handleCancelPhone = () => {
-    setEditPhoneValue(user.phone);
+    setEditPhoneValue(profileData?.contact_number || "");
     setIsEditingPhone(false);
   };
 
-  const handleSaveAddress = () => {
-    if (!editAddressValue.trim()) {
-      toast.error("Address is required");
-      return;
-    }
-    setUser({ ...user, address: editAddressValue });
-    setIsEditingAddress(false);
-    setHasChanges(true);
-    toast.success("Address updated");
-  };
-
-  const handleCancelAddress = () => {
-    setEditAddressValue(user.address);
-    setIsEditingAddress(false);
-  };
-
-  const handleChangePassword = () => {
-    if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
-      toast.error("All fields required", {
-        description: "Please fill in all password fields.",
-      });
-      return;
-    }
-
-    if (passwordData.new !== passwordData.confirm) {
-      toast.error("Passwords don't match", {
-        description: "New password and confirmation must match.",
-      });
-      return;
-    }
-
-    if (passwordData.new.length < 8) {
-      toast.error("Password too short", {
-        description: "Password must be at least 8 characters.",
-      });
-      return;
-    }
-
-    setIsEditingPassword(false);
-    setPasswordData({ current: "", new: "", confirm: "" });
-    setHasChanges(true);
-    toast.success("Password changed", {
-      description: "Your password has been updated successfully.",
-    });
-  };
-
-  const handleCancelPassword = () => {
-    setPasswordData({ current: "", new: "", confirm: "" });
-    setIsEditingPassword(false);
-  };
-
   const handleGlobalSave = async () => {
-    setIsSaving(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (!profileData) return;
 
-      toast.success("Profile saved", {
-        description: "All changes have been saved successfully.",
+    try {
+      const updateData: {
+        name?: string;
+        contact_number?: string;
+        image?: File;
+      } = {};
+
+      // Only include changed fields
+      if (editNameValue !== profileData.name) {
+        if (editNameValue.length > 32) {
+          toast.error("Name too long", {
+            description: "Name must be 32 characters or less.",
+          });
+          return;
+        }
+        updateData.name = editNameValue;
+      }
+
+      if (editPhoneValue !== profileData.contact_number) {
+        updateData.contact_number = editPhoneValue;
+      }
+
+      if (selectedImage) {
+        updateData.image = selectedImage;
+      }
+
+      // Only call API if there are changes
+      if (Object.keys(updateData).length === 0) {
+        toast.info("No changes to save");
+        return;
+      }
+
+      await updateProfile(updateData).unwrap();
+
+      toast.success("Profile updated", {
+        description: "Your profile has been updated successfully.",
       });
+
       setHasChanges(false);
+      setIsEditingName(false);
+      setIsEditingPhone(false);
+      setSelectedImage(null);
+      setImagePreview(null);
+
+      // Refetch profile data
+      refetch();
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to save", {
-        description: "Please try again.",
+      console.error("Failed to update profile:", error);
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Please try again.";
+      toast.error("Failed to update profile", {
+        description: errorMessage,
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -198,15 +158,10 @@ export default function ProfileClient() {
     // Reset all editing states
     setIsEditingName(false);
     setIsEditingPhone(false);
-    setIsEditingAddress(false);
-    setIsEditingPassword(false);
-    setEditNameValue(user.fullName);
-    setEditPhoneValue(user.phone);
-    setEditAddressValue(user.address);
-    setPasswordData({ current: "", new: "", confirm: "" });
-    setPopUpNotification(true);
-    setChatNotification(true);
-    setNewUpdateNotification(false);
+    setEditNameValue(profileData?.name || "");
+    setEditPhoneValue(profileData?.contact_number || "");
+    setSelectedImage(null);
+    setImagePreview(null);
     setHasChanges(false);
 
     toast.info("Changes discarded", {
@@ -238,7 +193,7 @@ export default function ProfileClient() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-            Welcome {user.name}!
+            Welcome {profileData?.name || "User"}!
           </h1>
           <p className="text-sm text-secondary mt-1">
             Manage your profile information here.
@@ -249,17 +204,17 @@ export default function ProfileClient() {
           <Button
             variant="outline"
             onClick={handleGlobalCancel}
-            disabled={isSaving}
+            disabled={isUpdating}
             className="text-foreground border-gray-300 bg-transparent hover:bg-primary/30 hover:text-foreground"
           >
             Cancel
           </Button>
           <Button
             onClick={handleGlobalSave}
-            disabled={isSaving || !hasChanges}
+            disabled={isUpdating || !hasChanges}
             className="bg-foreground text-white hover:bg-foreground"
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isUpdating ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>
@@ -268,24 +223,36 @@ export default function ProfileClient() {
       <div className="bg-white rounded-xl p-4 sm:p-6 md:p-8 border border-gray-200 dark:border-gray-700">
         {/* User Info Header */}
         <div className="flex items-center gap-3 sm:gap-5 mb-6 sm:mb-10">
-          <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden shrink-0 bg-gray-200">
+          <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden shrink-0 bg-gray-200 group">
             <Image
-              src={user.avatar || "/images/avatar.png"}
+              src={imagePreview || getFullImageUrl(profileData?.image)}
               alt="Profile"
-              width={72}
-              height={72}
-              className="object-cover"
+              fill
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  user.name,
+                  profileData?.name || "User",
                 )}&background=random&size=72`;
               }}
+              unoptimized
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Upload className="w-5 h-5 text-white" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
             />
           </div>
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-              {user.name}
+              {profileData?.name || "User"}
             </h2>
             <p className="text-xs sm:text-sm text-secondary">
               Update your username and manage your account
@@ -306,7 +273,7 @@ export default function ProfileClient() {
             >
               Account Settings
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveSection("notifications")}
               className={`w-full text-left px-3 py-2 sm:px-4 sm:py-3 rounded-lg font-semibold transition-all ${
                 activeSection === "notifications"
@@ -315,7 +282,7 @@ export default function ProfileClient() {
               }`}
             >
               Notifications
-            </button>
+            </button> */}
           </div>
 
           {/* Form Fields */}
@@ -343,7 +310,10 @@ export default function ProfileClient() {
                             </label>
                             <Input
                               value={editNameValue}
-                              onChange={(e) => setEditNameValue(e.target.value)}
+                              onChange={(e) => {
+                                setEditNameValue(e.target.value);
+                                setHasChanges(true);
+                              }}
                               className="w-full bg-white border-gray-300 text-foreground dark:text-gray-100"
                               placeholder="Enter your full name"
                               maxLength={32}
@@ -362,25 +332,18 @@ export default function ProfileClient() {
                             >
                               Cancel
                             </Button>
-                            <Button
-                              type="button"
-                              onClick={handleSaveName}
-                              className="text-white hover:bg-foreground"
-                            >
-                              Save
-                            </Button>
                           </div>
                         </div>
                       ) : (
                         <div className="text-foreground mt-1">
-                          {user.fullName}
+                          {profileData?.name || "N/A"}
                         </div>
                       )}
                     </div>
 
                     {!isEditingName && (
                       <button
-                        onClick={() => setIsEditingName(true)}
+                        onClick={handleEditName}
                         className="flex items-center gap-2 text-secondary hover:text-foreground font-semibold text-sm transition-colors mt-1"
                       >
                         <Pencil className="w-4 h-4" /> Edit
@@ -402,9 +365,10 @@ export default function ProfileClient() {
                           <div className="space-y-2">
                             <Input
                               value={editPhoneValue}
-                              onChange={(e) =>
-                                setEditPhoneValue(e.target.value)
-                              }
+                              onChange={(e) => {
+                                setEditPhoneValue(e.target.value);
+                                setHasChanges(true);
+                              }}
                               className="w-full bg-white border-gray-300 text-foreground"
                               placeholder="000-0000-000"
                             />
@@ -418,23 +382,18 @@ export default function ProfileClient() {
                             >
                               Cancel
                             </Button>
-                            <Button
-                              type="button"
-                              onClick={handleSavePhone}
-                              className="text-white hover:bg-foreground"
-                            >
-                              Save
-                            </Button>
                           </div>
                         </div>
                       ) : (
-                        <div className="text-foreground mt-1">{user.phone}</div>
+                        <div className="text-foreground mt-1">
+                          {profileData?.contact_number || "N/A"}
+                        </div>
                       )}
                     </div>
 
                     {!isEditingPhone && (
                       <button
-                        onClick={() => setIsEditingPhone(true)}
+                        onClick={handleEditPhone}
                         className="flex items-center gap-2 text-secondary hover:text-foreground font-semibold text-sm transition-colors mt-1"
                       >
                         <Pencil className="w-4 h-4" /> Edit
@@ -444,7 +403,7 @@ export default function ProfileClient() {
                 </div>
 
                 {/* Address Field */}
-                <div className="py-4 sm:py-6 border-b border-gray-100">
+                {/* <div className="py-4 sm:py-6 border-b border-gray-100">
                   <div className="flex justify-between items-start gap-4">
                     <div className="w-full">
                       <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -497,10 +456,10 @@ export default function ProfileClient() {
                       </button>
                     )}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Email Field */}
-                <div className="py-4 sm:py-6">
+                {/* <div className="py-4 sm:py-6">
                   <div className="flex justify-between items-center gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -524,10 +483,10 @@ export default function ProfileClient() {
                       {showEmail ? "Hide" : "View"}
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Password Field */}
-                <div className="py-4 sm:py-6">
+                {/* <div className="py-4 sm:py-6">
                   <div className="flex justify-between items-start gap-4">
                     <div className="w-full">
                       <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -642,16 +601,16 @@ export default function ProfileClient() {
                       </button>
                     )}
                   </div>
-                </div>
+                </div> */}
               </>
             )}
 
             {/* Notifications Section */}
-            {activeSection === "notifications" && (
+            {/* {activeSection === "notifications" && (
               <div>
                 <NotificationsClient />
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>
