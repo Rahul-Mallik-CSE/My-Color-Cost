@@ -39,6 +39,18 @@ export interface ResendOtpRequest {
   email: string;
 }
 
+export interface ProfileSetupRequest {
+  business_name: string;
+  delivery_charge: string;
+  free_delivery_threshold: string;
+  delivery_areas: string[];
+  api_key: string;
+}
+
+export interface ProfileSetupResponseData {
+  message: string;
+}
+
 // ============================================
 // RESPONSE TYPES
 // ============================================
@@ -155,6 +167,18 @@ export const authApi = apiSlice.injectEndpoints({
       query: () => "/auth/me/",
       providesTags: ["Auth"],
     }),
+
+    // Profile Setup endpoint - POST /retailer/profile/setup/
+    profileSetup: builder.mutation<
+      ApiResponse<ProfileSetupResponseData>,
+      ProfileSetupRequest
+    >({
+      query: (data) => ({
+        url: "/retailer/profile/setup/",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -168,4 +192,5 @@ export const {
   useResendOtpMutation,
   useLogoutMutation,
   useGetCurrentUserQuery,
+  useProfileSetupMutation,
 } = authApi;

@@ -19,13 +19,10 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
-import { useAppDispatch } from "@/redux/hooks";
-import { setCredentials } from "@/redux/features/authSlice";
 import {
   useVerifyOtpMutation,
   useResendOtpMutation,
 } from "@/redux/services/authApi";
-import { setAuthCookies } from "@/lib/utils";
 import { toast } from "sonner";
 
 const otpSchema = z.object({
@@ -40,7 +37,6 @@ const VerifyOtp = () => {
   const [email, setEmail] = useState<string>("");
   const [isResending, setIsResending] = useState(false);
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const flow = searchParams.get("flow") || "signup";
 
@@ -82,50 +78,61 @@ const VerifyOtp = () => {
         otp_code: data.otp,
       }).unwrap();
 
+      console.log("📦 Full OTP verification response:", response);
+      console.log("✅ Success status:", response.success);
+      console.log("📧 Flow:", flow);
+
       if (response.success) {
-        toast.success(response.message || "Verification successful!");
+        toast.success("Verification successful! Please setup your profile!");
 
         if (flow === "reset") {
           // For password reset flow, store OTP and redirect to reset password
           sessionStorage.setItem("resetOtp", data.otp);
           router.push("/reset-password");
         } else {
-          // For signup flow, user is now verified and logged in
+          // For signup flow, save tokens to localStorage (not cookies)
+          // User needs to complete profile setup before being fully authenticated
+
+          console.log("📊 Response data:", response.data);
+
+          if (!response.data || !response.data.access || !response.data.user) {
+            console.error("❌ Invalid response structure:", response);
+            toast.error("Invalid response from server");
+            return;
+          }
+
           const { access, refresh, user } = response.data;
 
-          // Dispatch to Redux
-          dispatch(
-            setCredentials({
-              user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.account_type || "retailer",
-                account_type: user.account_type,
-              },
-              accessToken: access,
-              refreshToken: refresh,
-            }),
-          );
+          console.log("💾 Saving tokens to localStorage...");
+          console.log("📧 User email:", user.email);
+          console.log("👤 User name:", user.name);
 
-          // Set cookies for persistence using helper function
-          setAuthCookies(
-            access,
-            refresh,
-            user.account_type || "retailer",
-            user.email,
-            user.name,
-            true, // rememberMe for signup OTP verification
+          // Save tokens to localStorage temporarily
+          localStorage.setItem("setupAccessToken", access);
+          localStorage.setItem("setupRefreshToken", refresh);
+          localStorage.setItem("setupUserEmail", user.email);
+          localStorage.setItem("setupUserName", user.name);
+
+          // Verify localStorage was set
+          const savedToken = localStorage.getItem("setupAccessToken");
+          console.log(
+            "✅ Token saved verification:",
+            savedToken ? "Success" : "Failed",
           );
 
           // Clear sessionStorage
           sessionStorage.removeItem("verifyEmail");
           sessionStorage.removeItem("otpFlow");
 
-          console.log("🍪 Cookies set, redirecting to dashboard...");
+          console.log(
+            "💾 Tokens saved to localStorage, redirecting to profile setup...",
+          );
+          console.log("🔄 Navigating to /profile-setup");
 
-          // Redirect immediately
-          window.location.replace("/dashboard");
+          // Redirect to profile setup page
+          router.push("/profile-setup");
+
+          console.log("✅ router.push() called - should navigate now");
         }
       } else {
         toast.error(
@@ -179,9 +186,9 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-pink-50 py-10">
+    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-linear-to-b from-[#ff6c95] to-[#e993fd]  ">
       {/* Background Shape */}
-      <div className="absolute inset-0 w-full h-full z-0">
+      {/* <div className="absolute inset-0 w-full h-full z-0">
         <Image
           src="/icons/shape.png"
           alt="Background Shape"
@@ -189,7 +196,7 @@ const VerifyOtp = () => {
           className="object-cover"
           priority
         />
-      </div>
+      </div> */}
 
       {/* Form Card */}
       <motion.div
@@ -208,7 +215,15 @@ const VerifyOtp = () => {
           <CardContent className="p-8 md:p-[40px]">
             {/* "Verify with OTP" matches uploaded_media_3. uploaded_media_1 says "Verify with Email". 
                  I'll stick with "Verify with OTP" as general purpose. */}
-            <div className="flex flex-col items-center gap-8">
+            <div className="flex flex-col items-center gap-4">
+              <Image
+                src="/color-cost-logo.png"
+                alt="Register Icon"
+                width={160}
+                height={120}
+                className=""
+                priority
+              />
               <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center">
                 Verify with OTP
               </h1>

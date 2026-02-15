@@ -25,6 +25,7 @@ const PUBLIC_ROUTES = [
   "/verify-otp",
   "/reset-success",
   "/success",
+  "/profile-setup", // Allow access for OTP-verified users (uses localStorage)
   "/terms",
   "/privacy-policy",
   "/about-us",

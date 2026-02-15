@@ -125,9 +125,9 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-pink-50 py-10">
+    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-linear-to-b from-[#ff6c95] to-[#e993fd] ">
       {/* Background Shape */}
-      <div className="absolute inset-0 w-full h-full z-0">
+      {/* <div className="absolute inset-0 w-full h-full z-0">
         <Image
           src="/icons/shape.png"
           alt="Background Shape"
@@ -135,7 +135,7 @@ const ResetPassword = () => {
           className="object-cover"
           priority
         />
-      </div>
+      </div> */}
 
       {/* Form Card */}
       <motion.div
@@ -152,7 +152,15 @@ const ResetPassword = () => {
           }}
         >
           <CardContent className="p-8 md:p-[40px]">
-            <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-4">
+              <Image
+                src="/color-cost-logo.png"
+                alt="Register Icon"
+                width={160}
+                height={120}
+                className=""
+                priority
+              />
               <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center">
                 Reset Password
               </h1>

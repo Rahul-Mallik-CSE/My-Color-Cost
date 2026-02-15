@@ -28,6 +28,11 @@ export const apiSlice = createApi({
         token = getCookie("accessToken");
       }
 
+      // If still no token, check localStorage (for profile setup flow)
+      if (!token && typeof window !== "undefined") {
+        token = localStorage.getItem("setupAccessToken");
+      }
+
       // If we have a token, include it in the headers
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
