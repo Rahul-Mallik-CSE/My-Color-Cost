@@ -10,6 +10,7 @@ export interface User {
   email: string;
   role: string;
   account_type?: string;
+  image?: string | null;
 }
 
 interface AuthState {
@@ -43,6 +44,11 @@ export const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken;
       state.isAuthenticated = true;
     },
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
+    },
     updateTokens: (
       state,
       action: PayloadAction<{ accessToken: string; refreshToken: string }>,
@@ -59,7 +65,8 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, updateTokens, logout } = authSlice.actions;
+export const { setCredentials, updateTokens, updateUser, logout } =
+  authSlice.actions;
 
 export default authSlice.reducer;
 

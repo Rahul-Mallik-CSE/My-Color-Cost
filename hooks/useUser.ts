@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,6 +17,7 @@ export interface UserInfo {
   name: string | null;
   role: string | null;
   email: string | null;
+  image: string | null;
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -31,7 +34,7 @@ export function useUser() {
   // Select from Redux Store (Single Source of Truth)
   const redUser = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  
+
   // Local loading state for initial hydration check
   const [isChecking, setIsChecking] = useState(true);
 
@@ -60,18 +63,20 @@ export function useUser() {
 
       if (accessToken && role) {
         // SIMULATE API CALL: Find user details from dummy data
-        const foundUser = usersData.find(u => u.email === email);
+        const foundUser = usersData.find((u) => u.email === email);
         const userName = foundUser ? foundUser.name : "User"; // Default if not found
+        const userId = foundUser ? foundUser.id : ""; // Default if not found
 
         // Dispatch to Redux to sync state
         dispatch(
           setCredentials({
-            user: { name: userName, email, role },
-            token: accessToken,
-          })
+            user: { id: userId, name: userName, email, role },
+            accessToken,
+            refreshToken: getCookie("refreshToken") || "",
+          }),
         );
       }
-      
+
       setIsChecking(false);
     };
 
@@ -85,10 +90,14 @@ export function useUser() {
     dispatch(logoutAction());
 
     // 2. Clear Cookies
-    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie =
+      "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie =
+      "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie =
+      "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie =
+      "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
     console.log("User logged out successfully");
 
@@ -100,9 +109,10 @@ export function useUser() {
     name: redUser?.name || null,
     role: redUser?.role || null,
     email: redUser?.email || null,
+    image: redUser?.image || null,
     // We don't necessarily store the token string in the public `user` object in Redux if we want to be minimal,
     // but authSlice has it.
-    accessToken: useAppSelector((state) => state.auth.token), 
+    accessToken: useAppSelector((state) => state.auth.accessToken),
     isAuthenticated,
     isLoading: isChecking,
     hasRole,

@@ -83,6 +83,7 @@ export const SignInForm = () => {
             email: user.email,
             role: user.account_type || "retailer",
             account_type: user.account_type,
+            image: user.image || null,
           },
           accessToken: access,
           refreshToken: refresh,

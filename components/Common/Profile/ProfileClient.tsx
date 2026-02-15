@@ -3,7 +3,7 @@
 // components\Dashboard\Profile\ProfileClient.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,12 @@ import {
   useUpdateProfileMutation,
 } from "@/redux/services/settingAPI";
 import { getFullImageUrl } from "@/lib/utils";
+import { useAppDispatch } from "@/redux/hooks";
+import { updateUser } from "@/redux/features/authSlice";
 
 export default function ProfileClient() {
   // API hooks
+  const dispatch = useAppDispatch();
   const { data: profileData, isLoading, refetch } = useGetProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
 
@@ -35,6 +38,20 @@ export default function ProfileClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Sync profile data with Redux auth state when loaded
+  useEffect(() => {
+    if (profileData) {
+      console.log("📝 Syncing profile data to Redux:", profileData);
+      dispatch(
+        updateUser({
+          name: profileData.name,
+          email: profileData.email,
+          image: profileData.image,
+        }),
+      );
+    }
+  }, [profileData, dispatch]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -122,7 +139,15 @@ export default function ProfileClient() {
         return;
       }
 
-      await updateProfile(updateData).unwrap();
+      const result = await updateProfile(updateData).unwrap();
+
+      // Update Redux auth state with the new user data
+      dispatch(
+        updateUser({
+          name: result.name,
+          image: result.image,
+        }),
+      );
 
       toast.success("Profile updated", {
         description: "Your profile has been updated successfully.",

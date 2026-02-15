@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar";
 import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
+import { cn, getFullImageUrl } from "@/lib/utils";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
@@ -46,7 +46,17 @@ interface DashboardWrapperProps {
 export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const pathname = usePathname();
   // Use centralized user hook
-  const { name, role, isAuthenticated, logout } = useUser();
+  const { name, role, image, isAuthenticated, logout } = useUser();
+
+  // Debug logging
+  useEffect(() => {
+    console.log("🖼️ Sidebar - User Image Data:", {
+      image,
+      fullUrl: image ? getFullImageUrl(image) : null,
+      name,
+      role,
+    });
+  }, [image, name, role]);
 
   // State management
   const [mounted, setMounted] = useState(false);
@@ -60,6 +70,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const minWidth = 83;
   const maxWidth = 400;
@@ -518,13 +529,23 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                     }}
                     className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
                   >
-                    <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
-                      <Image
-                        src="/images/avatar.png"
-                        alt="User"
-                        width={40}
-                        height={40}
-                      />
+                    <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center shrink-0 overflow-hidden">
+                      {image && !imageError ? (
+                        <Image
+                          key={image}
+                          src={getFullImageUrl(image)}
+                          alt={name || "User"}
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                          onError={() => setImageError(true)}
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-lg font-bold text-primary">
+                          {name ? name.charAt(0).toUpperCase() : ""}
+                        </div>
+                      )}
                     </div>
                     <motion.div
                       initial={false}

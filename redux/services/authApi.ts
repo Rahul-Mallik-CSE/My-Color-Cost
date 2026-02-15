@@ -74,6 +74,7 @@ export interface UserData {
   email: string;
   name: string;
   account_type?: string;
+  image?: string | null;
 }
 
 export interface AuthTokens {
