@@ -2,52 +2,72 @@
 
 "use client";
 
-import { payments } from "@/data/paymentData";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TablePagination } from "@/components/Shared/TablePagination";
 import Image from "next/image";
-import { Download } from "lucide-react";
+import { Payment } from "@/redux/services/paymentListAPI";
 
 const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Paid":
-    case "Delivered":
+  const normalizedStatus = status.toLowerCase();
+  switch (normalizedStatus) {
+    case "paid":
+    case "success":
+    case "completed":
       return "bg-green-100 text-green-600";
-    case "Pending":
+    case "pending":
       return "bg-orange-100 text-orange-400";
-    case "Unpaid":
-    case "Rejected":
+    case "unpaid":
+    case "failed":
+    case "rejected":
       return "bg-red-100 text-red-600";
     default:
       return "bg-gray-100 text-gray-600";
   }
 };
 
+// Helper function to format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
 import { TableSkeleton } from "@/components/Skeleton/TableSkeleton";
 
 export default function PaymentDetailsTable({
   title = "Payment List",
-  data = payments,
-  itemsPerPage = 8,
+  payments = [],
+  totalCount = 0,
+  itemsPerPage = 12,
   enablePagination = true,
   isLoading = false,
 }: {
   title?: string;
-  data?: typeof payments;
+  payments?: Payment[];
+  totalCount?: number;
   itemsPerPage?: number;
   enablePagination?: boolean;
   isLoading?: boolean;
 }) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalItems = data.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  const showPagination = enablePagination && totalItems > itemsPerPage;
+  // Only show pagination if enabled AND total count is greater than items per page
+  const showPagination = enablePagination && totalCount > itemsPerPage;
 
-  const currentData = showPagination
-    ? data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-    : data;
+  // Calculate current page data
+  const currentData = useMemo(() => {
+    if (!showPagination) {
+      return payments.slice(0, itemsPerPage);
+    }
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return payments.slice(startIndex, endIndex);
+  }, [payments, currentPage, itemsPerPage, showPagination]);
 
   return (
     <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-[6px_6px_54px_0px_#0000000D] w-full">
@@ -89,22 +109,22 @@ export default function PaymentDetailsTable({
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600 font-medium">
-                      {item.name}
+                      {item.customer_name}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
-                      {item.paymentId}
+                      {item.transfer_id || `PAY-${item.id}`}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
-                      {item.date}
+                      {formatDate(item.payment_date)}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600 font-semibold">
-                      {item.amount}
+                      ${parseFloat(item.total_transfer_amount).toFixed(2)}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6">
                       <span
-                        className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold ${getStatusColor(item.status)}`}
+                        className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold capitalize ${getStatusColor(item.transfer_status)}`}
                       >
-                        {item.status}
+                        {item.transfer_status}
                       </span>
                     </td>
                   </tr>
@@ -117,7 +137,7 @@ export default function PaymentDetailsTable({
             <TablePagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={totalItems}
+              totalItems={totalCount}
               itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
             />

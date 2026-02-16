@@ -2,50 +2,72 @@
 
 "use client";
 
-import { orders } from "@/data/orderData";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TablePagination } from "@/components/Shared/TablePagination";
 import Image from "next/image";
+import { Order } from "@/redux/services/ordersAPI";
 
 const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Delivered":
+  const normalizedStatus = status.toLowerCase();
+  switch (normalizedStatus) {
+    case "delivered":
+    case "completed":
       return "bg-green-100 text-green-600";
-    case "Pending":
+    case "pending":
       return "bg-orange-100 text-orange-400";
-    case "Rejected":
+    case "rejected":
+    case "cancelled":
       return "bg-red-100 text-red-600";
     default:
       return "bg-gray-100 text-gray-600";
   }
 };
 
+// Helper function to format date
+const formatDateTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 import { TableSkeleton } from "@/components/Skeleton/TableSkeleton";
 
 export default function OrderDetailsTable({
   title = "Order Details",
-  data = orders,
-  itemsPerPage = 7,
+  orders = [],
+  totalCount = 0,
+  itemsPerPage = 12,
   enablePagination = true,
   isLoading = false,
 }: {
   title?: string;
-  data?: typeof orders;
+  orders?: Order[];
+  totalCount?: number;
   itemsPerPage?: number;
   enablePagination?: boolean;
   isLoading?: boolean;
 }) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalItems = data.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  // Only show pagination if enabled AND there are more items than the page size
-  const showPagination = enablePagination && totalItems > itemsPerPage;
+  // Only show pagination if enabled AND total count is greater than items per page
+  const showPagination = enablePagination && totalCount > itemsPerPage;
 
-  const currentData = showPagination
-    ? data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-    : data;
+  // Calculate current page data
+  const currentData = useMemo(() => {
+    if (!showPagination) {
+      return orders.slice(0, itemsPerPage);
+    }
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return orders.slice(startIndex, endIndex);
+  }, [orders, currentPage, itemsPerPage, showPagination]);
 
   return (
     <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-[6px_6px_54px_0px_#0000000D] w-full">
@@ -91,23 +113,23 @@ export default function OrderDetailsTable({
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600 font-medium">
-                      {order.productName}
+                      {order.product_name}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
-                      {order.location}
+                      {order.delivery_area}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
-                      {order.dateTime}
+                      {formatDateTime(order.created_at)}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600">
-                      {order.piece}
+                      {order.quantity}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6 text-gray-600 font-semibold">
-                      {order.amount}
+                      ${parseFloat(order.total_amount).toFixed(2)}
                     </td>
                     <td className="py-3 px-4 sm:py-4 sm:px-6">
                       <span
-                        className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}
+                        className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold capitalize ${getStatusColor(order.status)}`}
                       >
                         {order.status}
                       </span>
@@ -122,7 +144,7 @@ export default function OrderDetailsTable({
             <TablePagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={totalItems}
+              totalItems={totalCount}
               itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
             />

@@ -2,22 +2,32 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import PaymentDetailsTable from "@/components/(Dashboard)/Payments/PaymentDetailsTable";
 import DashboardHeader from "@/components/Shared/DashboardHeader";
-import { payments } from "@/data/paymentData";
+import { useGetPaymentsQuery } from "@/redux/services/paymentListAPI";
 
 export default function PaymentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: paymentsResponse, isLoading } = useGetPaymentsQuery();
 
-  const filteredPayments = payments.filter(
-    (payment) =>
-      payment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.paymentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.amount.includes(searchQuery) ||
-      payment.method.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  // Filter payments based on search query
+  const filteredPayments = useMemo(() => {
+    if (!paymentsResponse?.data.payments) return [];
+
+    if (!searchQuery.trim()) return paymentsResponse.data.payments;
+
+    const query = searchQuery.toLowerCase();
+    return paymentsResponse.data.payments.filter(
+      (payment) =>
+        payment.customer_name.toLowerCase().includes(query) ||
+        payment.customer_email.toLowerCase().includes(query) ||
+        payment.transfer_status.toLowerCase().includes(query) ||
+        payment.total_transfer_amount.includes(query) ||
+        (payment.transfer_id &&
+          payment.transfer_id.toLowerCase().includes(query)),
+    );
+  }, [paymentsResponse, searchQuery]);
 
   return (
     <>
@@ -27,9 +37,11 @@ export default function PaymentsPage() {
           Payment List
         </h2>
         <PaymentDetailsTable
-          itemsPerPage={8}
+          itemsPerPage={12}
           title=""
-          data={filteredPayments}
+          payments={filteredPayments}
+          totalCount={filteredPayments.length}
+          isLoading={isLoading}
         />
       </div>
     </>
