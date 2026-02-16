@@ -11,18 +11,83 @@ import { Pencil, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useStripeOnboardMutation,
 } from "@/redux/services/settingAPI";
 import { getFullImageUrl } from "@/lib/utils";
 import { useAppDispatch } from "@/redux/hooks";
 import { updateUser } from "@/redux/features/authSlice";
+
+// Country list for Stripe onboarding
+const STRIPE_COUNTRIES = [
+  { code: "AU", name: "Australia" },
+  { code: "AT", name: "Austria" },
+  { code: "BE", name: "Belgium" },
+  { code: "BR", name: "Brazil" },
+  { code: "BG", name: "Bulgaria" },
+  { code: "CA", name: "Canada" },
+  { code: "CI", name: "Côte d'Ivoire (Ivory Coast)" },
+  { code: "HR", name: "Croatia" },
+  { code: "CY", name: "Cyprus" },
+  { code: "CZ", name: "Czechia (Czech Republic)" },
+  { code: "DK", name: "Denmark" },
+  { code: "EE", name: "Estonia" },
+  { code: "FI", name: "Finland" },
+  { code: "FR", name: "France" },
+  { code: "DE", name: "Germany" },
+  { code: "GH", name: "Ghana" },
+  { code: "GI", name: "Gibraltar (British Overseas Territory)" },
+  { code: "GR", name: "Greece" },
+  { code: "HK", name: "Hong Kong (Special Administrative Region of China)" },
+  { code: "HU", name: "Hungary" },
+  { code: "IN", name: "India" },
+  { code: "ID", name: "Indonesia" },
+  { code: "IE", name: "Ireland" },
+  { code: "IT", name: "Italy" },
+  { code: "JP", name: "Japan" },
+  { code: "KE", name: "Kenya" },
+  { code: "LV", name: "Latvia" },
+  { code: "LI", name: "Liechtenstein" },
+  { code: "LT", name: "Lithuania" },
+  { code: "LU", name: "Luxembourg" },
+  { code: "MY", name: "Malaysia" },
+  { code: "MT", name: "Malta" },
+  { code: "MX", name: "Mexico" },
+  { code: "NL", name: "Netherlands" },
+  { code: "NZ", name: "New Zealand" },
+  { code: "NG", name: "Nigeria" },
+  { code: "NO", name: "Norway" },
+  { code: "PL", name: "Poland" },
+  { code: "PT", name: "Portugal" },
+  { code: "RO", name: "Romania" },
+  { code: "SG", name: "Singapore" },
+  { code: "SK", name: "Slovakia" },
+  { code: "SI", name: "Slovenia" },
+  { code: "ES", name: "Spain" },
+  { code: "SE", name: "Sweden" },
+  { code: "CH", name: "Switzerland" },
+  { code: "TH", name: "Thailand" },
+  { code: "AE", name: "United Arab Emirates" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "US", name: "United States" },
+  { code: "ZA", name: "South Africa" },
+];
 
 export default function ProfileClient() {
   // API hooks
   const dispatch = useAppDispatch();
   const { data: profileData, isLoading, refetch } = useGetProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const [stripeOnboard, { isLoading: isConnectingStripe }] =
+    useStripeOnboardMutation();
 
   const [activeSection, setActiveSection] = useState<
     "account" | "notifications" | "language"
@@ -36,6 +101,9 @@ export default function ProfileClient() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Stripe onboarding
+  const [selectedCountry, setSelectedCountry] = useState<string>("US");
 
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -102,6 +170,35 @@ export default function ProfileClient() {
   const handleCancelPhone = () => {
     setEditPhoneValue(profileData?.contact_number || "");
     setIsEditingPhone(false);
+  };
+
+  const handleConnectStripe = async () => {
+    if (!selectedCountry) {
+      toast.error("Please select a country", {
+        description: "You must select a country to connect with Stripe.",
+      });
+      return;
+    }
+
+    try {
+      const result = await stripeOnboard({ country: selectedCountry }).unwrap();
+
+      toast.success("Redirecting to Stripe", {
+        description:
+          result.message || "Opening Stripe onboarding in a new tab.",
+      });
+
+      // Open the onboarding URL in a new tab
+      window.open(result.onboarding_url, "_blank");
+    } catch (error) {
+      console.error("Failed to connect with Stripe:", error);
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Failed to connect with Stripe. Please try again.";
+      toast.error("Connection failed", {
+        description: errorMessage,
+      });
+    }
   };
 
   const handleGlobalSave = async () => {
@@ -424,6 +521,56 @@ export default function ProfileClient() {
                         <Pencil className="w-4 h-4" /> Edit
                       </button>
                     )}
+                  </div>
+                </div>
+
+                {/* Stripe Connection Field */}
+                <div className="py-4 sm:py-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1.5">
+                        Connect with Stripe
+                      </label>
+                      <p className="text-xs text-secondary mb-3">
+                        Connect your Stripe account to start accepting payments
+                      </p>
+                    </div>
+
+                    <div className="max-w-md space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          Select Country
+                        </label>
+                        <Select
+                          value={selectedCountry}
+                          onValueChange={setSelectedCountry}
+                        >
+                          <SelectTrigger className="w-full bg-white border-gray-300 text-foreground">
+                            <SelectValue placeholder="Select a country" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-75">
+                            {STRIPE_COUNTRIES.map((country) => (
+                              <SelectItem
+                                key={country.code}
+                                value={country.code}
+                              >
+                                {country.code} – {country.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <Button
+                        onClick={handleConnectStripe}
+                        disabled={isConnectingStripe || !selectedCountry}
+                        className="w-full bg-[#635BFF] hover:bg-[#5248E6] text-white"
+                      >
+                        {isConnectingStripe
+                          ? "Connecting..."
+                          : "Connect with Stripe"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
 

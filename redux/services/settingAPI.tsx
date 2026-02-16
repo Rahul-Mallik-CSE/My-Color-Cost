@@ -18,6 +18,16 @@ interface UserProfile {
   created_at: string;
 }
 
+interface StripeOnboardingRequest {
+  country: string;
+}
+
+interface StripeOnboardingResponse {
+  onboarding_url: string;
+  account_id: string;
+  message: string;
+}
+
 export const settingAPI = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get user profile
@@ -54,7 +64,23 @@ export const settingAPI = apiSlice.injectEndpoints({
       },
       invalidatesTags: ["User"],
     }),
+
+    // Stripe onboarding
+    stripeOnboard: builder.mutation<
+      StripeOnboardingResponse,
+      StripeOnboardingRequest
+    >({
+      query: (data) => ({
+        url: "/retailer/stripe/onboard/",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
-export const { useGetProfileQuery, useUpdateProfileMutation } = settingAPI;
+export const {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+  useStripeOnboardMutation,
+} = settingAPI;

@@ -403,7 +403,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                             className={cn(
                               "flex items-center gap-3 p-3 rounded-sm transition-all duration-300 group flex-1 relative overflow-hidden",
                               isActive
-                                ? "bg-primary text-white shadow-lg shadow-primary/20 font-semibold"
+                                ? "bg-linear-to-b from-[#e993fd] to-[#ff6c95]  text-white hover:bg-[#ff6c95] hover:text-white! shadow-lg shadow-primary/20 font-semibold"
                                 : "hover:bg-gray-100 text-gray-600 font-medium hover:text-primary",
                             )}
                           >
