@@ -134,7 +134,7 @@ export default function ProfileSetupForm() {
         className="z-10 w-full px-4 md:px-0 flex items-center justify-center"
       >
         <Card
-          className="w-full max-w-[600px] bg-white border border-[#DDDDDD] rounded-[24px] p-0"
+          className="w-full max-w-[900px] bg-white border border-[#DDDDDD] rounded-[24px] p-0"
           style={{
             boxShadow:
               "0px 5px 11px 0px #0000000D, 0px 19px 19px 0px #0000000D, 0px 43px 26px 0px #0000000D, 0px 77px 31px 0px #00000003, 0px 120px 34px 0px #00000000",
@@ -191,16 +191,24 @@ export default function ProfileSetupForm() {
                 </div>
 
                 {/* Delivery Charge & Free Delivery Threshold */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   {/* Delivery Charge Field */}
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label
                       htmlFor="delivery_charge"
-                      className="text-xl font-normal text-foreground flex items-center gap-2"
+                      className="text-lg font-normal text-foreground flex items-center gap-2"
                     >
                       <DollarSign className="w-5 h-5 text-gray-500" />
                       Delivery Charge
                     </Label>
+                    <p className="text-xs">
+                      We recommend setting a delivery fee of no more than £3 If
+                      you are in a basket with multiple other retailers and the
+                      delivery fee exceeds £5, a £4.99 cap will be automatically
+                      applied. This helps keep the user from aborting the
+                      purchase due to high delivery fees. £4.99 will be equally
+                      split between the retailers in the basket.
+                    </p>
                     <Input
                       id="delivery_charge"
                       type="text"
@@ -220,14 +228,22 @@ export default function ProfileSetupForm() {
                   </div>
 
                   {/* Free Delivery Threshold Field */}
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label
                       htmlFor="free_delivery_threshold"
-                      className="text-xl font-normal text-foreground flex items-center gap-2"
+                      className="text-lg font-normal text-foreground flex items-center gap-2"
                     >
                       <DollarSign className="w-5 h-5 text-gray-500" />
-                      Free Delivery
+                      Free delivery minimum threshold
                     </Label>
+                    <p className="text-xs">
+                      we recommend keeping this between £50 - £100 If this
+                      affects your profit margins, we recommend slightly
+                      increasing the prices of your products by no more than a
+                      £1, to help keep your margins where you would like them to
+                      be, and to help encourage our users not to abort their
+                      carts due to high delivery fees.
+                    </p>
                     <Input
                       id="free_delivery_threshold"
                       type="text"
@@ -284,7 +300,7 @@ export default function ProfileSetupForm() {
                     className="text-xl font-normal text-foreground flex items-center gap-2"
                   >
                     <Key className="w-5 h-5 text-gray-500" />
-                    API Key
+                    API Key(optional)
                   </Label>
                   <Input
                     id="api_key"
