@@ -69,17 +69,16 @@ const RegisterForm = () => {
         router.push("/verify-otp?flow=signup");
       } else {
         toast.error(
-          response.message || "Registration failed. Please try again.",
+        response.message || "Registration failed. Please try again.",
         );
       }
     } catch (error: unknown) {
-      console.error("Registration failed:", error);
       const apiError = error as {
-        data?: { message?: string };
+        data?: { data?: { email?: string[] }; message?: string };
         status?: number;
       };
       if (apiError?.data?.message) {
-        toast.error(apiError.data.message);
+        toast.error(apiError.data?.data?.email?.[0] || apiError.data?.message || "Registration failed. Please try again.");
       } else {
         toast.error("Something went wrong. Please try again.");
       }
