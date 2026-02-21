@@ -5,7 +5,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Building2, DollarSign, MapPin, Key } from "lucide-react";
+import { Loader2, Building2, MapPin, Key } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -53,7 +53,7 @@ export default function ProfileSetupForm() {
       delivery_charge: "",
       free_delivery_threshold: "",
       delivery_areas: "",
-      api_key: "",
+      api_key: undefined,
     },
   });
 
@@ -196,18 +196,13 @@ export default function ProfileSetupForm() {
                   <div className="space-y-1">
                     <Label
                       htmlFor="delivery_charge"
-                      className="text-lg font-normal text-foreground flex items-center gap-2"
+                      className="text-lg font-normal text-foreground"
                     >
-                      <DollarSign className="w-5 h-5 text-gray-500" />
                       Delivery Charge
                     </Label>
                     <p className="text-xs">
-                      We recommend setting a delivery fee of no more than £3 If
-                      you are in a basket with multiple other retailers and the
-                      delivery fee exceeds £5, a £4.99 cap will be automatically
-                      applied. This helps keep the user from aborting the
-                      purchase due to high delivery fees. £4.99 will be equally
-                      split between the retailers in the basket.
+                      Tip: We recommend setting a delivery fee of no more than
+                      £3.
                     </p>
                     <Input
                       id="delivery_charge"
@@ -231,18 +226,14 @@ export default function ProfileSetupForm() {
                   <div className="space-y-1">
                     <Label
                       htmlFor="free_delivery_threshold"
-                      className="text-lg font-normal text-foreground flex items-center gap-2"
+                      className="text-lg font-normal text-foreground"
                     >
-                      <DollarSign className="w-5 h-5 text-gray-500" />
                       Free delivery minimum threshold
                     </Label>
                     <p className="text-xs">
-                      we recommend keeping this between £50 - £100 If this
-                      affects your profit margins, we recommend slightly
-                      increasing the prices of your products by no more than a
-                      £1, to help keep your margins where you would like them to
-                      be, and to help encourage our users not to abort their
-                      carts due to high delivery fees.
+                      Tip: We recommend keeping your free delivery minimum
+                      threshold between £50 - £100. The lower the better for our
+                      hairstylists and more fulfilled orders.
                     </p>
                     <Input
                       id="free_delivery_threshold"
@@ -306,18 +297,10 @@ export default function ProfileSetupForm() {
                     id="api_key"
                     type="text"
                     placeholder="Enter your API key..."
-                    className={`h-14 rounded-xl text-base ${
-                      errors.api_key
-                        ? "border-red-500 focus-visible:ring-red-500"
-                        : "text-foreground border-[#3B3B3B]"
-                    }`}
+                    className={`h-14 rounded-xl text-base`}
                     {...register("api_key")}
                   />
-                  {errors.api_key && (
-                    <p className="text-sm text-red-500">
-                      {errors.api_key.message}
-                    </p>
-                  )}
+                  
                 </div>
 
                 {/* Submit Button */}

@@ -54,10 +54,7 @@ export const signupValidationSchema = z
         message: "Password cannot contain spaces",
       }),
     confirmPassword: z.string().min(1, "Please confirm your password"),
-    contactNumber: z
-      .string()
-      .min(1, "Contact number is required")
-      .regex(/^\+?[1-9]\d{1,14}$/, "Please enter a valid phone number"),
+    contactNumber: z.string().min(1, "Contact number is required"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -132,12 +129,7 @@ export const passwordValidationSchema = z
 
 // Profile Setup Validation schema
 export const profileSetupValidationSchema = z.object({
-  business_name: z
-    .string()
-    .min(1, "Business name is required")
-    .min(2, "Business name must be at least 2 characters")
-    .max(100, "Business name must be less than 100 characters")
-    .trim(),
+  business_name: z.string().min(1, "Business name is required").trim(),
   delivery_charge: z
     .string()
     .min(1, "Delivery charge is required")
@@ -158,5 +150,5 @@ export const profileSetupValidationSchema = z.object({
     .refine((val) => val.split(",").filter((area) => area.trim()).length > 0, {
       message: "Please enter at least one delivery area",
     }),
-  api_key: z.string().min(1, "API key is required").trim(),
+  api_key: z.string().optional(),
 });

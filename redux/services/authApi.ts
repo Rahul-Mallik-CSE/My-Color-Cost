@@ -44,7 +44,7 @@ export interface ProfileSetupRequest {
   delivery_charge: string;
   free_delivery_threshold: string;
   delivery_areas: string[];
-  api_key: string;
+  api_key?: string;
 }
 
 export interface ProfileSetupResponseData {
