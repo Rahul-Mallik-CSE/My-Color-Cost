@@ -20,7 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAppDispatch } from "@/redux/hooks";
 import { setCredentials } from "@/redux/features/authSlice";
 import { useLoginMutation } from "@/redux/services/authApi";
-import { setAuthCookies } from "@/lib/utils";
+import { setAuthCookies, clearAuthCookies } from "@/lib/utils";
 import { toast } from "sonner";
 import { loginValidationSchema } from "@/lib/formDataValidation";
 
@@ -115,10 +115,13 @@ export const SignInForm = () => {
       console.log("API Error details:", apiError);
 
       if (apiError?.data?.message) {
+        clearAuthCookies();
         toast.error(apiError.data.message);
       } else if (apiError?.error) {
+        clearAuthCookies();
         toast.error(apiError.error);
       } else {
+        clearAuthCookies();
         toast.error("Something went wrong. Please try again.");
       }
     }

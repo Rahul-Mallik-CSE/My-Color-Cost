@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useSignupMutation } from "@/redux/services/authApi";
 import { toast } from "sonner";
 import { signupValidationSchema } from "@/lib/formDataValidation";
+import { clearAuthCookies } from "@/lib/utils";
 
 type FormValues = z.infer<typeof signupValidationSchema>;
 
@@ -69,8 +70,9 @@ const RegisterForm = () => {
         router.push("/verify-otp?flow=signup");
       } else {
         toast.error(
-        response.message || "Registration failed. Please try again.",
+          response.message || "Registration failed. Please try again.",
         );
+        clearAuthCookies();
       }
     } catch (error: unknown) {
       const apiError = error as {
@@ -78,9 +80,15 @@ const RegisterForm = () => {
         status?: number;
       };
       if (apiError?.data?.message) {
-        toast.error(apiError.data?.data?.email?.[0] || apiError.data?.message || "Registration failed. Please try again.");
+        toast.error(
+          apiError.data?.data?.email?.[0] ||
+            apiError.data?.message ||
+            "Registration failed. Please try again.",
+        );
       } else {
+        // need to remove all the cookies
         toast.error("Something went wrong. Please try again.");
+        clearAuthCookies();
       }
     }
   };
