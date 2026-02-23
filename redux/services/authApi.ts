@@ -47,6 +47,15 @@ export interface ProfileSetupRequest {
   api_key?: string;
 }
 
+export interface LoginProfileSetupRequest {
+  email: string;
+  business_name: string;
+  delivery_charge: string;
+  free_delivery_threshold: string;
+  delivery_areas: string[];
+  api_key?: string;
+}
+
 export interface ProfileSetupResponseData {
   message: string;
 }
@@ -169,13 +178,25 @@ export const authApi = apiSlice.injectEndpoints({
       providesTags: ["Auth"],
     }),
 
-    // Profile Setup endpoint - POST /retailer/profile/setup/
+    // Profile Setup endpoint - POST /retailer/profile/setup/ (signup flow)
     profileSetup: builder.mutation<
       ApiResponse<ProfileSetupResponseData>,
       ProfileSetupRequest
     >({
       query: (data) => ({
         url: "/retailer/profile/setup/",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    // Login Profile Setup endpoint - POST /retailer/retailer/profile/setup/ (login flow)
+    loginProfileSetup: builder.mutation<
+      ApiResponse<ProfileSetupResponseData>,
+      LoginProfileSetupRequest
+    >({
+      query: (data) => ({
+        url: "/retailer/retailer/profile/setup/",
         method: "POST",
         body: data,
       }),
@@ -194,4 +215,5 @@ export const {
   useLogoutMutation,
   useGetCurrentUserQuery,
   useProfileSetupMutation,
+  useLoginProfileSetupMutation,
 } = authApi;

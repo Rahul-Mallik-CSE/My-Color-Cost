@@ -15,32 +15,69 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { useProfileSetupMutation } from "@/redux/services/authApi";
+import {
+  useProfileSetupMutation,
+  useLoginProfileSetupMutation,
+} from "@/redux/services/authApi";
 import { toast } from "sonner";
 import { profileSetupValidationSchema } from "@/lib/formDataValidation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type FormValues = z.infer<typeof profileSetupValidationSchema>;
 
 export default function ProfileSetupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const flow = searchParams.get("flow") || "signup";
 
-  // RTK Query profile setup mutation
-  const [profileSetup, { isLoading }] = useProfileSetupMutation();
+  // RTK Query mutations for both flows
+  const [profileSetup, { isLoading: isSignupLoading }] =
+    useProfileSetupMutation();
+  const [loginProfileSetup, { isLoading: isLoginLoading }] =
+    useLoginProfileSetupMutation();
 
-  // Check if user has setup token on mount
+  const isLoading = isSignupLoading || isLoginLoading;
+
+  // Check if user has valid context on mount
   useEffect(() => {
-    const setupToken = localStorage.getItem("setupAccessToken");
-    console.log("🔍 Checking setup token:", setupToken ? "Found" : "Not found");
+    if (flow === "login") {
+      // Login flow: check for email in sessionStorage
+      const email = sessionStorage.getItem("profileSetupEmail");
+      console.log(
+        "🔍 Login flow - Checking email:",
+        email ? "Found" : "Not found",
+      );
 
-    if (!setupToken) {
-      console.log("⚠️ No setup token found, redirecting to signin...");
-      toast.error("Please verify your email first");
-      router.push("/signin");
+      if (!email) {
+        console.log(
+          "⚠️ No email found for login flow, redirecting to signin...",
+        );
+        toast.error("Please login first");
+        router.push("/signin");
+      } else {
+        console.log(
+          "✅ Email found, user can proceed with profile setup (login flow)",
+        );
+      }
     } else {
-      console.log("✅ Setup token found, user can proceed with profile setup");
+      // Signup flow: check for setup token
+      const setupToken = localStorage.getItem("setupAccessToken");
+      console.log(
+        "🔍 Signup flow - Checking setup token:",
+        setupToken ? "Found" : "Not found",
+      );
+
+      if (!setupToken) {
+        console.log("⚠️ No setup token found, redirecting to signin...");
+        toast.error("Please verify your email first");
+        router.push("/signin");
+      } else {
+        console.log(
+          "✅ Setup token found, user can proceed with profile setup (signup flow)",
+        );
+      }
     }
-  }, [router]);
+  }, [router, flow]);
 
   const {
     register,
@@ -61,6 +98,7 @@ export default function ProfileSetupForm() {
     try {
       console.log("🏢 Attempting profile setup with:", {
         business_name: data.business_name,
+        flow,
       });
 
       // Convert delivery_areas from comma-separated string to array
@@ -69,13 +107,29 @@ export default function ProfileSetupForm() {
         .map((area) => area.trim())
         .filter((area) => area.length > 0);
 
-      const response = await profileSetup({
-        business_name: data.business_name,
-        delivery_charge: data.delivery_charge,
-        free_delivery_threshold: data.free_delivery_threshold,
-        delivery_areas: deliveryAreasArray,
-        api_key: data.api_key,
-      }).unwrap();
+      let response;
+
+      if (flow === "login") {
+        // Login flow: use /retailer/retailer/profile/setup/ with email
+        const email = sessionStorage.getItem("profileSetupEmail") || "";
+        response = await loginProfileSetup({
+          email,
+          business_name: data.business_name,
+          delivery_charge: data.delivery_charge,
+          free_delivery_threshold: data.free_delivery_threshold,
+          delivery_areas: deliveryAreasArray,
+          api_key: data.api_key,
+        }).unwrap();
+      } else {
+        // Signup flow: use /retailer/profile/setup/ (existing)
+        response = await profileSetup({
+          business_name: data.business_name,
+          delivery_charge: data.delivery_charge,
+          free_delivery_threshold: data.free_delivery_threshold,
+          delivery_areas: deliveryAreasArray,
+          api_key: data.api_key,
+        }).unwrap();
+      }
 
       console.log("✅ Profile setup response:", response);
 
@@ -83,12 +137,19 @@ export default function ProfileSetupForm() {
         response.message || "Profile setup completed successfully!",
       );
 
-      // Clear localStorage tokens (setup flow)
-      console.log("🧹 Clearing localStorage setup tokens...");
-      localStorage.removeItem("setupAccessToken");
-      localStorage.removeItem("setupRefreshToken");
-      localStorage.removeItem("setupUserEmail");
-      localStorage.removeItem("setupUserName");
+      if (flow === "login") {
+        // Clear sessionStorage for login flow
+        console.log("🧹 Clearing sessionStorage login flow data...");
+        sessionStorage.removeItem("profileSetupEmail");
+        sessionStorage.removeItem("profileSetupFlow");
+      } else {
+        // Clear localStorage tokens (signup flow)
+        console.log("🧹 Clearing localStorage setup tokens...");
+        localStorage.removeItem("setupAccessToken");
+        localStorage.removeItem("setupRefreshToken");
+        localStorage.removeItem("setupUserEmail");
+        localStorage.removeItem("setupUserName");
+      }
 
       console.log("🔄 Redirecting to login...");
       // Redirect to login page
@@ -300,7 +361,6 @@ export default function ProfileSetupForm() {
                     className={`h-14 rounded-xl text-base`}
                     {...register("api_key")}
                   />
-                  
                 </div>
 
                 {/* Submit Button */}

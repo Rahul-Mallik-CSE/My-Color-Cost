@@ -23,12 +23,14 @@ import { useLoginMutation } from "@/redux/services/authApi";
 import { setAuthCookies, clearAuthCookies } from "@/lib/utils";
 import { toast } from "sonner";
 import { loginValidationSchema } from "@/lib/formDataValidation";
+import { useRouter } from "next/navigation";
 
 type FormValues = z.infer<typeof loginValidationSchema>;
 
 export const SignInForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   // RTK Query login mutation
   const [login, { isLoading }] = useLoginMutation();
@@ -108,11 +110,25 @@ export const SignInForm = () => {
     } catch (error: unknown) {
       console.error("❌ Login error caught:", error);
       const apiError = error as {
-        data?: { message?: string; success?: boolean };
+        data?: { message?: string; success?: boolean; statusCode?: number };
         status?: number;
         error?: string;
       };
       console.log("API Error details:", apiError);
+
+      // Check for 403 profile setup incomplete
+      if (
+        apiError?.status === 403 &&
+        apiError?.data?.message ===
+          "Profile setup incomplete. Please complete your profile first."
+      ) {
+        toast.error(apiError.data.message);
+        // Store email in sessionStorage for the profile setup page
+        sessionStorage.setItem("profileSetupEmail", data.email);
+        sessionStorage.setItem("profileSetupFlow", "login");
+        router.push("/profile-setup?flow=login");
+        return;
+      }
 
       if (apiError?.data?.message) {
         clearAuthCookies();
