@@ -20,7 +20,7 @@ export default function DashboardHeader({
   return (
     <div className="bg-white flex flex-col md:flex-row justify-between items-center py-4 px-4 md:px-8 border-b border-border gap-4">
       <div className="flex flex-col items-start justify-center">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground font-zilla">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground font-agrandir">
           {title}
         </h1>
         {description && <p className="text-secondary mt-1">{description}</p>}

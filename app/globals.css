@@ -1,5 +1,38 @@
+/** @format */
+
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* Agrandir Font */
+@font-face {
+  font-family: "Agrandir";
+  src:
+    url("/fonts/agrandir/Agrandir-Regular.woff2") format("woff2"),
+    url("/fonts/agrandir/Agrandir-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Agrandir";
+  src:
+    url("/fonts/agrandir/Agrandir-TextBold.woff2") format("woff2"),
+    url("/fonts/agrandir/Agrandir-TextBold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Agrandir";
+  src:
+    url("/fonts/agrandir/Agrandir-GrandHeavy.woff2") format("woff2"),
+    url("/fonts/agrandir/Agrandir-GrandHeavy.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,7 +43,8 @@
   --font-mono: var(--font-geist-mono);
   --font-nunito: var(--font-nunito);
   --font-zilla: var(--font-zilla);
-  
+  --font-agrandir: "Agrandir", sans-serif;
+
   --color-primary-blue: var(--primary-blue);
 
   --color-sidebar-ring: var(--sidebar-ring);
@@ -55,39 +89,39 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #FFF1F5;
+  --background: #fff1f5;
   --foreground: #202224;
-  --primary: #FD6C97;
+  --primary: #fd6c97;
   --primary-foreground: #ffffff;
   --secondary: #636566;
   --secondary-foreground: #ffffff;
   --muted: #f5f7fa;
   --muted-foreground: #6b7280;
-  --accent: #FD6C97;
+  --accent: #fd6c97;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --error: #ef4444;
   --error-foreground: #ffffff;
-  --border: #EAEAEA;
+  --border: #eaeaea;
   --input: #e8e8eb;
-  --ring: #FD6C97; 
-  --primary-blue: #4880FF;
-  
-  --chart-1: #FD6C97;
-  --chart-2: #4880FF;
+  --ring: #fd6c97;
+  --primary-blue: #4880ff;
+
+  --chart-1: #fd6c97;
+  --chart-2: #4880ff;
   --chart-3: #93c5fd;
   --chart-4: #bfdbfe;
   --chart-5: #dbeafe;
-  
+
   --sidebar: #f9fafb;
   --sidebar-foreground: #202224;
-  --sidebar-primary: #FD6C97;
+  --sidebar-primary: #fd6c97;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f5f7fa;
   --sidebar-accent-foreground: #202224;
-  --sidebar-border: #EAEAEA;
-  --sidebar-ring: #FD6C97;
-  
+  --sidebar-border: #eaeaea;
+  --sidebar-ring: #fd6c97;
+
   --card: #ffffff;
   --card-foreground: #202224;
   --popover: #ffffff;
@@ -101,33 +135,33 @@
   --card-foreground: #f3f4f6;
   --popover: #151a21;
   --popover-foreground: #f3f4f6;
-  --primary: #1D92ED;
+  --primary: #1d92ed;
   --primary-foreground: #ffffff;
   --secondary: #414141;
   --secondary-foreground: #ffffff;
   --muted: #1f2937;
   --muted-foreground: #9ca3af;
-  --accent: #1D92ED;
+  --accent: #1d92ed;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --error: #ef4444;
   --error-foreground: #ffffff;
-  --border:  #E7E7E7;
+  --border: #e7e7e7;
   --input: #1f2937;
   --ring: #93c5fd;
-  --chart-1: #1D92ED;
+  --chart-1: #1d92ed;
   --chart-2: #60a5fa;
   --chart-3: #93c5fd;
   --chart-4: #bfdbfe;
   --chart-5: #dbeafe;
   --sidebar: #0f1419;
   --sidebar-foreground: #f3f4f6;
-  --sidebar-primary: #1D92ED;
+  --sidebar-primary: #1d92ed;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1f2937;
   --sidebar-accent-foreground: #f3f4f6;
-  --sidebar-border: #E7E7E7;
-  --sidebar-ring: #1D92ED;
+  --sidebar-border: #e7e7e7;
+  --sidebar-ring: #1d92ed;
 }
 
 /* ===== Utilities Layer ===== */
@@ -225,7 +259,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
- /* OTP Input Styles */
+  /* OTP Input Styles */
   [data-slot="input-otp-slot"] {
     border: 2px solid var(--border);
     transition: all 0.2s ease;
