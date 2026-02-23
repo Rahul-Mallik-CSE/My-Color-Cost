@@ -222,7 +222,7 @@ export default function ProductForm({
                   <input
                     {...register("title")}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-gray-400 font-medium"
-                    placeholder="e.g., Modern Leather Sofa"
+                    placeholder="e.g., Redken shades EQ"
                   />
                   {errors.title && (
                     <p className="text-red-500 text-sm">
