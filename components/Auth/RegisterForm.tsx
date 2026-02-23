@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { useSignupMutation } from "@/redux/services/authApi";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ const RegisterForm = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(signupValidationSchema),
@@ -44,6 +46,7 @@ const RegisterForm = () => {
       contactNumber: "",
       password: "",
       confirmPassword: "",
+      termsAccepted: false,
     },
   });
 
@@ -292,6 +295,41 @@ const RegisterForm = () => {
                   {errors.confirmPassword && (
                     <p className="text-sm text-red-500">
                       {errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Terms and Conditions */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Controller
+                      name="termsAccepted"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="termsAccepted"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        />
+                      )}
+                    />
+                    <Label
+                      htmlFor="termsAccepted"
+                      className="text-base font-normal text-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      I agree to the{" "}
+                      <Link
+                        href="/terms-and-conditions"
+                        className="text-primary hover:text-primary/80 hover:underline transition-colors"
+                      >
+                        Terms and Conditions
+                      </Link>
+                    </Label>
+                  </div>
+                  {errors.termsAccepted && (
+                    <p className="text-sm text-red-500">
+                      {errors.termsAccepted.message}
                     </p>
                   )}
                 </div>

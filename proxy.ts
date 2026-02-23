@@ -29,6 +29,7 @@ const PUBLIC_ROUTES = [
   "/terms",
   "/privacy-policy",
   "/about-us",
+  "/terms-and-conditions",
 ];
 
 // Auth routes (redirect to dashboard if already logged in)

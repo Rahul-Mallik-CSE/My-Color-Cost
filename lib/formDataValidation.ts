@@ -55,6 +55,12 @@ export const signupValidationSchema = z
       }),
     confirmPassword: z.string().min(1, "Please confirm your password"),
     contactNumber: z.string().min(1, "Contact number is required"),
+    termsAccepted: z
+      .boolean()
+      .refine(
+        (val) => val === true,
+        "You must accept the terms and conditions",
+      ),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
