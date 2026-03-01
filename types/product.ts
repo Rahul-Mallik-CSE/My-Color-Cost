@@ -9,6 +9,7 @@ export interface ProductAPI {
   market_price: string;
   quantity: number;
   stock_status: string;
+  vat: string;
   retailer_name: string;
   average_rating: string;
   total_reviews: number;
@@ -29,6 +30,7 @@ export interface Product {
   description?: string;
   category?: string;
   availableProduct?: number;
+  vat?: number;
 }
 
 // API Response wrapper

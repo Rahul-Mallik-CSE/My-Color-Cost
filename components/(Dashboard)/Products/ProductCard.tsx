@@ -64,10 +64,23 @@ export default function ProductCard({
 
         {/* Price and Rating Row */}
         <div className="flex flex-col gap-1">
-          <span className="text-primary font-bold text-base sm:text-lg">
-            {product.currency}
-            {product.price.toFixed(2)}
-          </span>
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-primary font-bold text-base sm:text-lg">
+              {product.currency}
+              {product.price.toFixed(2)}
+            </span>
+            {product.vat !== undefined && product.vat > 0 && (
+              <span className="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full">
+                +{product.currency}
+                {product.vat.toFixed(2)} VAT
+              </span>
+            )}
+            {product.vat === 0 && (
+              <span className="text-xs text-gray-400 font-medium bg-gray-100 px-2 py-0.5 rounded-full">
+                No VAT
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             <div className="flex text-orange-400">
               {[...Array(5)].map((_, i) => (

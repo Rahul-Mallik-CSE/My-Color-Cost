@@ -18,6 +18,7 @@ const transformProduct = (apiProduct: ProductAPI): Product => {
     reviewsCount: apiProduct.total_reviews,
     description: apiProduct.description,
     availableProduct: apiProduct.quantity,
+    vat: parseFloat(apiProduct.vat),
   };
 };
 
@@ -64,6 +65,7 @@ export const productsAPI = apiSlice.injectEndpoints({
         description: string;
         market_price: string;
         quantity: number;
+        vat: string;
         image?: File;
       }
     >({
@@ -73,6 +75,7 @@ export const productsAPI = apiSlice.injectEndpoints({
         formData.append("description", data.description);
         formData.append("market_price", data.market_price);
         formData.append("quantity", data.quantity.toString());
+        formData.append("vat", data.vat);
         if (data.image) {
           formData.append("image", data.image);
         }
@@ -95,6 +98,7 @@ export const productsAPI = apiSlice.injectEndpoints({
         description: string;
         market_price: string;
         quantity: number;
+        vat: string;
         image?: File;
       }
     >({
@@ -104,6 +108,7 @@ export const productsAPI = apiSlice.injectEndpoints({
         formData.append("description", data.description);
         formData.append("market_price", data.market_price);
         formData.append("quantity", data.quantity.toString());
+        formData.append("vat", data.vat);
 
         console.log("🔧 API Mutation - updateProduct:", {
           id,

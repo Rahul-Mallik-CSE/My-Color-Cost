@@ -50,6 +50,7 @@ export default function ProductForm({
       title: initialData?.title || "",
       desc: initialData?.description || "",
       price: initialData?.price || 0,
+      vat: initialData?.vat ?? 0,
       // stock: initialData?.stock?.toString() || "",
       availableProduct: initialData?.availableProduct || 0,
       image: undefined,
@@ -89,6 +90,7 @@ export default function ProductForm({
         name: data.title,
         description: data.desc || "",
         market_price: data.price.toString(),
+        vat: data.vat.toString(),
         quantity: data.availableProduct,
         image: data.image as File | undefined,
       };
@@ -130,6 +132,34 @@ export default function ProductForm({
       router.push("/products");
     } catch (error) {
       console.error("❌ Error submitting product:", error);
+
+      // Try to extract field-specific errors from API response
+      if (
+        error &&
+        typeof error === "object" &&
+        "data" in error &&
+        typeof error.data === "object" &&
+        error.data &&
+        "data" in (error.data as object)
+      ) {
+        const fieldErrors = (error.data as { data: Record<string, string[]> })
+          .data;
+        if (fieldErrors && typeof fieldErrors === "object") {
+          const messages = Object.entries(fieldErrors)
+            .map(([field, msgs]) => {
+              const label =
+                field.charAt(0).toUpperCase() +
+                field.slice(1).replace("_", " ");
+              return `${label}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`;
+            })
+            .join("\n");
+          if (messages) {
+            messages.split("\n").forEach((msg) => toast.error(msg));
+            return;
+          }
+        }
+      }
+
       const errorMessage =
         error &&
         typeof error === "object" &&
@@ -137,7 +167,7 @@ export default function ProductForm({
         typeof error.data === "object" &&
         error.data &&
         "message" in error.data
-          ? String(error.data.message)
+          ? String((error.data as { message: string }).message)
           : "Something went wrong. Please try again.";
       toast.error(errorMessage);
     }
@@ -273,44 +303,30 @@ export default function ProductForm({
                     )}
                   </div>
 
-                  {/* Stock Status */}
-                  {/* <div className="space-y-2">
+                  {/* VAT */}
+                  <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">
-                      Stock Status
+                      VAT (%)
                     </label>
-                    <div className="relative">
-                      <select
-                        {...register("stock")}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none text-gray-600 font-medium cursor-pointer"
-                      >
-                        <option value="" disabled>
-                          Select status
-                        </option>
-                        <option value="In Stock">In Stock</option>
-                        <option value="Out of Stock">Out of Stock</option>
-                        <option value="Classy">Low Stock</option>
-                      </select>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                        <svg
-                          width="12"
-                          height="8"
-                          viewBox="0 0 12 8"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M1.41 0.589996L6 5.17L10.59 0.589996L12 2L6 8L0 2L1.41 0.589996Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      </div>
+                    <div className="relative group">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold group-focus-within:text-primary transition-colors">
+                        %
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        {...register("vat")}
+                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-gray-400 font-medium"
+                        placeholder="0.00"
+                      />
                     </div>
-                    {errors.stock && (
+                    {errors.vat && (
                       <p className="text-red-500 text-sm">
-                        {errors.stock.message}
+                        {errors.vat.message}
                       </p>
                     )}
-                  </div> */}
+                  </div>
                 </div>
 
                 {/* Available Quantity */}
