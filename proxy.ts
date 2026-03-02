@@ -60,6 +60,7 @@ const ROLE_ACCESS_CONFIG: Record<Role, string[]> = {
     "/payments",
     "/products",
     "/stock",
+    "/business-profile",
   ],
 };
 

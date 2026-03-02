@@ -20,6 +20,7 @@ import {
   ClipboardList,
   CreditCard,
   Settings,
+  SquareUserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/hooks/useUser";
@@ -107,6 +108,12 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
         label: "Payment List",
         href: "/payments",
         icon: CreditCard,
+        roles: ["retailer"],
+      },
+      {
+        label: "Business Profile",
+        href: "/business-profile",
+        icon: SquareUserRound,
         roles: ["retailer"],
       },
       {
