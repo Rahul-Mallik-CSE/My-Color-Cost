@@ -5,10 +5,10 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Building2, MapPin, Key } from "lucide-react";
+import { Loader2, Building2, MapPin, Key, ImageIcon, X } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,30 @@ export default function ProfileSetupForm() {
     useLoginProfileSetupMutation();
 
   const isLoading = isSignupLoading || isLoginLoading;
+
+  // Logo upload state
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Logo file too large. Max 5MB.");
+        return;
+      }
+      setLogoPreview(URL.createObjectURL(file));
+      setValue("business_logo", file, { shouldDirty: true });
+    }
+  };
+
+  const removeLogo = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLogoPreview(null);
+    setValue("business_logo", undefined);
+    if (logoInputRef.current) logoInputRef.current.value = "";
+  };
 
   // Check if user has valid context on mount
   useEffect(() => {
@@ -82,6 +106,7 @@ export default function ProfileSetupForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(profileSetupValidationSchema),
@@ -91,6 +116,7 @@ export default function ProfileSetupForm() {
       free_delivery_threshold: "",
       delivery_areas: "",
       api_key: undefined,
+      business_logo: undefined,
     },
   });
 
@@ -119,15 +145,19 @@ export default function ProfileSetupForm() {
           free_delivery_threshold: data.free_delivery_threshold,
           delivery_areas: deliveryAreasArray,
           api_key: data.api_key,
+          business_logo: data.business_logo as File | undefined,
         }).unwrap();
       } else {
         // Signup flow: use /retailer/profile/setup/ (existing)
+        const email = localStorage.getItem("setupUserEmail") || "";
         response = await profileSetup({
+          email,
           business_name: data.business_name,
           delivery_charge: data.delivery_charge,
           free_delivery_threshold: data.free_delivery_threshold,
           delivery_areas: deliveryAreasArray,
           api_key: data.api_key,
+          business_logo: data.business_logo as File | undefined,
         }).unwrap();
       }
 
@@ -195,14 +225,14 @@ export default function ProfileSetupForm() {
         className="z-10 w-full px-4 md:px-0 flex items-center justify-center"
       >
         <Card
-          className="w-full max-w-[900px] bg-white border border-[#DDDDDD] rounded-[24px] p-0"
+          className="w-full max-w-225 bg-white border border-[#DDDDDD] rounded-[24px] p-0"
           style={{
             boxShadow:
               "0px 5px 11px 0px #0000000D, 0px 19px 19px 0px #0000000D, 0px 43px 26px 0px #0000000D, 0px 77px 31px 0px #00000003, 0px 120px 34px 0px #00000000",
           }}
         >
-          <CardContent className="p-8 md:p-[40px]">
-            <div className="flex flex-col items-center gap-4">
+          <CardContent className="px-8 py-4 md:py-8 md:px-10">
+            <div className="flex flex-col items-center gap-2">
               <Image
                 src="/color-cost-logo.png"
                 alt="Register Icon"
@@ -212,7 +242,7 @@ export default function ProfileSetupForm() {
                 priority
               />
               <div className="text-center">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+                <h1 className="text-xl md:text-2xl xl:text-3xl font-bold text-foreground mb-1">
                   Profile Setup
                 </h1>
                 <p className="text-gray-500 text-sm md:text-base">
@@ -224,6 +254,63 @@ export default function ProfileSetupForm() {
                 onSubmit={handleSubmit(onSubmit)}
                 className="w-full flex flex-col gap-4"
               >
+                {/* Business Logo Upload */}
+                <div className="space-y-3">
+                  <Label className="text-xl font-normal text-foreground flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-gray-500" />
+                    Business Logo
+                    <span className="text-sm text-gray-400 font-normal">
+                      (optional)
+                    </span>
+                  </Label>
+
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoChange}
+                  />
+
+                  <div
+                    onClick={() => logoInputRef.current?.click()}
+                    className="relative border-2 border-dashed border-gray-300 rounded-xl h-28 flex items-center justify-center cursor-pointer hover:border-primary/60 hover:bg-gray-50 transition-all overflow-hidden group"
+                  >
+                    {logoPreview ? (
+                      <>
+                        <Image
+                          src={logoPreview}
+                          alt="Business logo preview"
+                          fill
+                          className="object-contain p-3 group-hover:opacity-80 transition-opacity"
+                          unoptimized
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                          <p className="text-white text-sm font-medium">
+                            Click to replace
+                          </p>
+                          <button
+                            onClick={removeLogo}
+                            className="p-1.5 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-gray-400">
+                        <ImageIcon className="w-10 h-10" />
+                        <p className="text-sm font-medium">
+                          Click to upload business logo
+                        </p>
+                        <p className="text-xs">
+                          PNG, JPG, SVG or GIF (max 5MB)
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Business Name Field */}
                 <div className="space-y-3">
                   <Label
@@ -237,7 +324,7 @@ export default function ProfileSetupForm() {
                     id="business_name"
                     type="text"
                     placeholder="Enter your business name..."
-                    className={`h-14 rounded-xl text-base ${
+                    className={`h-11 rounded-xl text-base ${
                       errors.business_name
                         ? "border-red-500 focus-visible:ring-red-500"
                         : "text-foreground border-[#3B3B3B]"
@@ -269,7 +356,7 @@ export default function ProfileSetupForm() {
                       id="delivery_charge"
                       type="text"
                       placeholder="50.00"
-                      className={`h-14 rounded-xl text-base ${
+                      className={`h-11 rounded-xl text-base ${
                         errors.delivery_charge
                           ? "border-red-500 focus-visible:ring-red-500"
                           : "text-foreground border-[#3B3B3B]"
@@ -300,7 +387,7 @@ export default function ProfileSetupForm() {
                       id="free_delivery_threshold"
                       type="text"
                       placeholder="1000.00"
-                      className={`h-14 rounded-xl text-base ${
+                      className={`h-11 rounded-xl text-base ${
                         errors.free_delivery_threshold
                           ? "border-red-500 focus-visible:ring-red-500"
                           : "text-foreground border-[#3B3B3B]"
@@ -328,7 +415,7 @@ export default function ProfileSetupForm() {
                     id="delivery_areas"
                     type="text"
                     placeholder="Gulshan, Banani, Dhanmondi"
-                    className={`h-14 rounded-xl text-base ${
+                    className={`h-11 rounded-xl text-base ${
                       errors.delivery_areas
                         ? "border-red-500 focus-visible:ring-red-500"
                         : "text-foreground border-[#3B3B3B]"
@@ -358,7 +445,7 @@ export default function ProfileSetupForm() {
                     id="api_key"
                     type="text"
                     placeholder="Enter your API key..."
-                    className={`h-14 rounded-xl text-base`}
+                    className={`h-11 rounded-xl text-base`}
                     {...register("api_key")}
                   />
                 </div>
@@ -367,7 +454,7 @@ export default function ProfileSetupForm() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-13 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none mt-2"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-white text-lg font-bold rounded-xl shadow-none mt-2"
                 >
                   {isLoading ? (
                     <>

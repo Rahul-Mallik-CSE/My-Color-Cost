@@ -40,11 +40,13 @@ export interface ResendOtpRequest {
 }
 
 export interface ProfileSetupRequest {
+  email: string;
   business_name: string;
   delivery_charge: string;
   free_delivery_threshold: string;
   delivery_areas: string[];
   api_key?: string;
+  business_logo?: File;
 }
 
 export interface LoginProfileSetupRequest {
@@ -54,6 +56,7 @@ export interface LoginProfileSetupRequest {
   free_delivery_threshold: string;
   delivery_areas: string[];
   api_key?: string;
+  business_logo?: File;
 }
 
 export interface ProfileSetupResponseData {
@@ -183,11 +186,27 @@ export const authApi = apiSlice.injectEndpoints({
       ApiResponse<ProfileSetupResponseData>,
       ProfileSetupRequest
     >({
-      query: (data) => ({
-        url: "/retailer/profile/setup/",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        const formData = new FormData();
+        formData.append("email", data.email);
+        formData.append("business_name", data.business_name);
+        formData.append("delivery_charge", data.delivery_charge);
+        formData.append(
+          "free_delivery_threshold",
+          data.free_delivery_threshold,
+        );
+        data.delivery_areas.forEach((area) =>
+          formData.append("delivery_areas", area),
+        );
+        if (data.api_key) formData.append("api_key", data.api_key);
+        if (data.business_logo)
+          formData.append("business_logo", data.business_logo);
+        return {
+          url: "/retailer/retailer/profile/setup/",
+          method: "POST",
+          body: formData,
+        };
+      },
     }),
 
     // Login Profile Setup endpoint - POST /retailer/retailer/profile/setup/ (login flow)
@@ -195,11 +214,27 @@ export const authApi = apiSlice.injectEndpoints({
       ApiResponse<ProfileSetupResponseData>,
       LoginProfileSetupRequest
     >({
-      query: (data) => ({
-        url: "/retailer/retailer/profile/setup/",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        const formData = new FormData();
+        formData.append("email", data.email);
+        formData.append("business_name", data.business_name);
+        formData.append("delivery_charge", data.delivery_charge);
+        formData.append(
+          "free_delivery_threshold",
+          data.free_delivery_threshold,
+        );
+        data.delivery_areas.forEach((area) =>
+          formData.append("delivery_areas", area),
+        );
+        if (data.api_key) formData.append("api_key", data.api_key);
+        if (data.business_logo)
+          formData.append("business_logo", data.business_logo);
+        return {
+          url: "/retailer/retailer/profile/setup/",
+          method: "POST",
+          body: formData,
+        };
+      },
     }),
   }),
 });

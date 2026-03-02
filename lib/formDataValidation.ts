@@ -157,4 +157,5 @@ export const profileSetupValidationSchema = z.object({
       message: "Please enter at least one delivery area",
     }),
   api_key: z.string().optional(),
+  business_logo: z.any().optional(),
 });
