@@ -69,6 +69,21 @@ const transformProduct = (p: ProductAPI): BusinessProfileProduct => ({
 // API SLICE
 // ============================================
 
+// ============================================
+// UPDATE REQUEST TYPE
+// ============================================
+
+export interface UpdateBusinessProfileRequest {
+  business_name?: string;
+  delivery_charge?: string;
+  free_delivery_threshold?: string;
+  business_logo?: File;
+}
+
+// ============================================
+// API SLICE
+// ============================================
+
 export const businessProfileAPI = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getBusinessProfile: builder.query<BusinessProfile, void>({
@@ -83,8 +98,36 @@ export const businessProfileAPI = apiSlice.injectEndpoints({
         products: response.data.products.map(transformProduct),
         total_products: response.data.total_products,
       }),
+      providesTags: ["BusinessProfile" as never],
+    }),
+
+    updateBusinessProfile: builder.mutation<
+      { success: boolean; message: string },
+      UpdateBusinessProfileRequest
+    >({
+      query: (data) => {
+        const formData = new FormData();
+        if (data.business_name !== undefined)
+          formData.append("business_name", data.business_name);
+        if (data.delivery_charge !== undefined)
+          formData.append("delivery_charge", data.delivery_charge);
+        if (data.free_delivery_threshold !== undefined)
+          formData.append(
+            "free_delivery_threshold",
+            data.free_delivery_threshold,
+          );
+        if (data.business_logo)
+          formData.append("business_logo", data.business_logo);
+        return {
+          url: "/retailer/retailer/profile/setup/",
+          method: "PATCH",
+          body: formData,
+        };
+      },
+      invalidatesTags: ["BusinessProfile" as never],
     }),
   }),
 });
 
-export const { useGetBusinessProfileQuery } = businessProfileAPI;
+export const { useGetBusinessProfileQuery, useUpdateBusinessProfileMutation } =
+  businessProfileAPI;

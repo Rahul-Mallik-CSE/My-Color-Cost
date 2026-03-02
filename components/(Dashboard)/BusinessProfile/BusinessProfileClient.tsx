@@ -4,14 +4,23 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Mail, MapPin, Truck, ShoppingBag, PackageOpen } from "lucide-react";
+import {
+  Mail,
+  MapPin,
+  Truck,
+  ShoppingBag,
+  PackageOpen,
+  Pencil,
+} from "lucide-react";
 import DashboardHeader from "@/components/Shared/DashboardHeader";
 import { ProductGridSkeleton } from "@/components/Skeleton/ProductGridSkeleton";
 import BusinessProductCard from "./BusinessProductCard";
+import EditBusinessProfileModal from "./EditBusinessProfileModal";
 import { useGetBusinessProfileQuery } from "@/redux/services/businessProfileAPI";
 
 export default function BusinessProfileClient() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
   const { data, isLoading, isError } = useGetBusinessProfileQuery();
 
   const filteredProducts =
@@ -80,8 +89,9 @@ export default function BusinessProfileClient() {
                   <div className="flex items-center gap-1.5 text-sm text-gray-500">
                     <Truck className="w-4 h-4 text-primary shrink-0" />
                     <span>
-                      Delivery: £{data.retailer.delivery_charge} &nbsp;·&nbsp;
-                      Free over £{data.retailer.free_delivery_threshold}
+                      Delivery Fee: £{data.retailer.delivery_charge}{" "}
+                      &nbsp;·&nbsp; Free delivery threshold: £
+                      {data.retailer.free_delivery_threshold}
                     </span>
                   </div>
                 </div>
@@ -111,9 +121,27 @@ export default function BusinessProfileClient() {
                   Products
                 </span>
               </div>
+
+              {/* Edit button */}
+              <button
+                onClick={() => setEditOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all shrink-0 self-start sm:self-center"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit Profile
+              </button>
             </div>
           </div>
         ) : null}
+
+        {/* ── Edit Modal ── */}
+        {data && (
+          <EditBusinessProfileModal
+            open={editOpen}
+            onClose={() => setEditOpen(false)}
+            retailer={data.retailer}
+          />
+        )}
 
         {/* ── Products Section ── */}
         <div className="flex flex-col gap-4">
