@@ -86,8 +86,10 @@ const VerifyOtp = () => {
         toast.success("Verification successful! Please setup your profile!");
 
         if (flow === "reset") {
-          // For password reset flow, store OTP and redirect to reset password
-          sessionStorage.setItem("resetOtp", data.otp);
+          // For password reset flow, store the access token and redirect to reset password
+          if (response.data?.access) {
+            sessionStorage.setItem("resetAccessToken", response.data.access);
+          }
           router.push("/reset-password");
         } else {
           // For signup flow, save tokens to localStorage (not cookies)

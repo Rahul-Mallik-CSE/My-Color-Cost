@@ -46,8 +46,7 @@ type FormValues = z.infer<typeof resetPasswordSchema>;
 const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [email, setEmail] = useState<string>("");
-  const [otpCode, setOtpCode] = useState<string>("");
+  const [resetToken, setResetToken] = useState<string>("");
   const router = useRouter();
 
   // RTK Query reset password mutation
@@ -66,31 +65,27 @@ const ResetPassword = () => {
   });
 
   useEffect(() => {
-    // Get email and OTP from sessionStorage
-    const storedEmail = sessionStorage.getItem("verifyEmail");
-    const storedOtp = sessionStorage.getItem("resetOtp");
+    // Get access token from sessionStorage (set during OTP verification)
+    const storedToken = sessionStorage.getItem("resetAccessToken");
 
-    if (!storedEmail || !storedOtp) {
+    if (!storedToken) {
       toast.error("Unauthorized access. Please verify OTP first.");
       router.push("/forgot-password");
       return;
     }
 
-    setEmail(storedEmail);
-    setOtpCode(storedOtp);
+    setResetToken(storedToken);
   }, [router]);
 
   const onSubmit = async (data: FormValues) => {
-    if (!email || !otpCode) {
-      toast.error("Missing verification data. Please start again.");
+    if (!resetToken) {
+      toast.error("Missing verification token. Please start again.");
       router.push("/forgot-password");
       return;
     }
 
     try {
       const response = await resetPassword({
-        email: email,
-        otp_code: otpCode,
         new_password: data.newPassword,
       }).unwrap();
 
@@ -100,8 +95,8 @@ const ResetPassword = () => {
         );
 
         // Clear sessionStorage
+        sessionStorage.removeItem("resetAccessToken");
         sessionStorage.removeItem("verifyEmail");
-        sessionStorage.removeItem("resetOtp");
         sessionStorage.removeItem("otpFlow");
 
         router.push("/reset-success");

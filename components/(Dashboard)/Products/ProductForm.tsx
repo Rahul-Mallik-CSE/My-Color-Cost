@@ -306,7 +306,7 @@ export default function ProductForm({
                   {/* VAT */}
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">
-                      VAT (£)
+                      VAT (£)(Optional)
                     </label>
                     <div className="relative group">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold group-focus-within:text-primary transition-colors">

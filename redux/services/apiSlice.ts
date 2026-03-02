@@ -33,6 +33,11 @@ export const apiSlice = createApi({
         token = localStorage.getItem("setupAccessToken");
       }
 
+      // If still no token, check sessionStorage (for password reset flow)
+      if (!token && typeof window !== "undefined") {
+        token = sessionStorage.getItem("resetAccessToken");
+      }
+
       // If we have a token, include it in the headers
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
