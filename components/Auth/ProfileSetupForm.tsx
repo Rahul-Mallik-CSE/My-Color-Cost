@@ -355,7 +355,7 @@ export default function ProfileSetupForm() {
                     <Input
                       id="delivery_charge"
                       type="text"
-                      placeholder="50.00"
+                      placeholder="50.00 to 3.00"
                       className={`h-11 rounded-xl text-base ${
                         errors.delivery_charge
                           ? "border-red-500 focus-visible:ring-red-500"
@@ -386,7 +386,7 @@ export default function ProfileSetupForm() {
                     <Input
                       id="free_delivery_threshold"
                       type="text"
-                      placeholder="1000.00"
+                      placeholder="50.00"
                       className={`h-11 rounded-xl text-base ${
                         errors.free_delivery_threshold
                           ? "border-red-500 focus-visible:ring-red-500"
@@ -414,7 +414,7 @@ export default function ProfileSetupForm() {
                   <Input
                     id="delivery_areas"
                     type="text"
-                    placeholder="Gulshan, Banani, Dhanmondi"
+                    placeholder="Please tell us where you are able to deliver."
                     className={`h-11 rounded-xl text-base ${
                       errors.delivery_areas
                         ? "border-red-500 focus-visible:ring-red-500"
