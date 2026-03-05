@@ -324,11 +324,10 @@ export default function ProfileSetupForm() {
                     id="business_name"
                     type="text"
                     placeholder="Enter your business name..."
-                    className={`h-11 rounded-xl text-base ${
-                      errors.business_name
-                        ? "border-red-500 focus-visible:ring-red-500"
-                        : "text-foreground border-[#3B3B3B]"
-                    }`}
+                    className={`h-11 rounded-xl text-base ${errors.business_name
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : "text-foreground border-[#3B3B3B]"
+                      }`}
                     {...register("business_name")}
                   />
                   {errors.business_name && (
@@ -355,12 +354,11 @@ export default function ProfileSetupForm() {
                     <Input
                       id="delivery_charge"
                       type="text"
-                      placeholder="50.00 to 3.00"
-                      className={`h-11 rounded-xl text-base ${
-                        errors.delivery_charge
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : "text-foreground border-[#3B3B3B]"
-                      }`}
+                      placeholder="3.00"
+                      className={`h-11 rounded-xl text-base ${errors.delivery_charge
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : "text-foreground border-[#3B3B3B]"
+                        }`}
                       {...register("delivery_charge")}
                     />
                     {errors.delivery_charge && (
@@ -387,11 +385,10 @@ export default function ProfileSetupForm() {
                       id="free_delivery_threshold"
                       type="text"
                       placeholder="50.00"
-                      className={`h-11 rounded-xl text-base ${
-                        errors.free_delivery_threshold
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : "text-foreground border-[#3B3B3B]"
-                      }`}
+                      className={`h-11 rounded-xl text-base ${errors.free_delivery_threshold
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : "text-foreground border-[#3B3B3B]"
+                        }`}
                       {...register("free_delivery_threshold")}
                     />
                     {errors.free_delivery_threshold && (
@@ -415,11 +412,10 @@ export default function ProfileSetupForm() {
                     id="delivery_areas"
                     type="text"
                     placeholder="Please tell us where you are able to deliver."
-                    className={`h-11 rounded-xl text-base ${
-                      errors.delivery_areas
-                        ? "border-red-500 focus-visible:ring-red-500"
-                        : "text-foreground border-[#3B3B3B]"
-                    }`}
+                    className={`h-11 rounded-xl text-base ${errors.delivery_areas
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : "text-foreground border-[#3B3B3B]"
+                      }`}
                     {...register("delivery_areas")}
                   />
                   <p className="text-xs text-gray-500">
