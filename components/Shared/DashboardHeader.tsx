@@ -1,7 +1,7 @@
 /** @format */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getFullImageUrl } from "@/lib/utils";
@@ -17,6 +17,11 @@ export default function DashboardHeader({
 }) {
   const { name, role, image } = useUser();
   const [imageError, setImageError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
     <div className="bg-white flex flex-col md:flex-row justify-between items-center py-4 px-4 md:px-8 border-b border-border gap-4">
       <div className="flex flex-col items-start justify-center">
@@ -33,7 +38,7 @@ export default function DashboardHeader({
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
         >
           <div className="w-10 h-10 rounded-full bg-pink-100 overflow-hidden shrink-0 border border-border flex items-center justify-center">
-            {image && !imageError ? (
+            {mounted && image && !imageError ? (
               <Image
                 key={image}
                 src={getFullImageUrl(image)}
@@ -46,16 +51,16 @@ export default function DashboardHeader({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-lg font-bold text-primary">
-                {name ? name.charAt(0).toUpperCase() : ""}
+                {mounted && name ? name.charAt(0).toUpperCase() : ""}
               </div>
             )}
           </div>
           <div className="hidden md:flex flex-col">
             <p className="text-sm font-bold text-foreground font-nunito">
-              {name || "User"}
+              {mounted ? name || "User" : ""}
             </p>
             <p className="text-xs text-gray-500 font-bold capitalize">
-              {role || "User"}
+              {mounted ? role || "User" : ""}
             </p>
           </div>
         </Link>
