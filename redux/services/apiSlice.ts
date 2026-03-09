@@ -52,7 +52,7 @@ export const apiSlice = createApi({
     },
   }),
   // Define tag types for cache invalidation
-  tagTypes: ["User", "Auth", "Product", "BusinessProfile"],
+  tagTypes: ["User", "Auth", "Product", "BusinessProfile", "BulkDiscount"],
   // Define endpoints in separate files and inject them here
   endpoints: () => ({}),
 });

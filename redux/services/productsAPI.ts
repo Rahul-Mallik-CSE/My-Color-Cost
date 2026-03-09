@@ -149,6 +149,47 @@ export const productsAPI = apiSlice.injectEndpoints({
         { type: "Product", id: "LIST" },
       ],
     }),
+
+    // Get bulk discount history
+    getBulkDiscount: builder.query<
+      {
+        history: {
+          discount_type: "amount" | "percentage";
+          discount_value: string;
+          products_affected: number;
+          products_skipped: number;
+          applied_at: string;
+        }[];
+      },
+      void
+    >({
+      query: () => `/retailer/retailer/products/bulk-discount/`,
+      transformResponse: (response: {
+        data: {
+          history: {
+            discount_type: "amount" | "percentage";
+            discount_value: string;
+            products_affected: number;
+            products_skipped: number;
+            applied_at: string;
+          }[];
+        };
+      }) => response.data,
+      providesTags: ["BulkDiscount"],
+    }),
+
+    // Apply bulk discount
+    applyBulkDiscount: builder.mutation<
+      void,
+      { discount_type: "amount" | "percentage"; discount_value: number }
+    >({
+      query: (data) => ({
+        url: `/retailer/retailer/products/bulk-discount/`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["BulkDiscount", { type: "Product", id: "LIST" }],
+    }),
   }),
 });
 
@@ -158,4 +199,6 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useGetBulkDiscountQuery,
+  useApplyBulkDiscountMutation,
 } = productsAPI;
