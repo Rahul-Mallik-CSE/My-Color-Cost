@@ -29,7 +29,7 @@ export const productsAPI = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get all products with pagination
     getAllProducts: builder.query<
-      { products: Product[]; totalCount: number },
+      { products: Product[]; totalCount: number; apiKey: string | null },
       { page?: number; limit?: number }
     >({
       query: ({ page = 1, limit = 12 }) => ({
@@ -39,6 +39,7 @@ export const productsAPI = apiSlice.injectEndpoints({
       transformResponse: (response: ProductsResponse) => ({
         products: response.data.products.map(transformProduct),
         totalCount: response.data.total_count,
+        apiKey: response.data.api_key ?? null,
       }),
       providesTags: (result) =>
         result

@@ -169,6 +169,15 @@ export default function ProductsPage() {
           </Link>
         </div>
 
+        {/* API Key Warning */}
+        {data?.apiKey && (
+          <div className="bg-red-50 border border-red-300 rounded-xl p-4">
+            <p className="text-sm font-semibold text-red-600">
+              Api key is not correct. Please add product manually
+            </p>
+          </div>
+        )}
+
         {/* Discount Headline */}
         <div className="bg-white rounded-xl shadow-sm border p-4">
           <p className="text-sm font-medium text-muted-foreground">

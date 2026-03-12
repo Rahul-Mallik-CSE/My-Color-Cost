@@ -43,5 +43,6 @@ export interface ProductsResponse {
   data: {
     products: ProductAPI[];
     total_count: number;
+    api_key: string | null;
   };
 }
