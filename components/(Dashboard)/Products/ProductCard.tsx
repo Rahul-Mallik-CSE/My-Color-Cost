@@ -2,10 +2,28 @@
 
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { Star, Edit2, Trash2 } from "lucide-react";
+import { Star, Trash2, Tag } from "lucide-react";
 import { Product } from "@/types/product";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useApplyProductDiscountMutation } from "@/redux/services/productsAPI";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface ProductCardProps {
   product: Product;
@@ -18,9 +36,36 @@ export default function ProductCard({
   onEdit,
   onDelete,
 }: ProductCardProps) {
-  // Generate stars array
-  const fullStars = Math.floor(product.rating);
-  const hasHalfStar = product.rating % 1 !== 0;
+  const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+  const [discountType, setDiscountType] = useState<"amount" | "percentage">(
+    "amount",
+  );
+  const [discountValue, setDiscountValue] = useState("");
+  const [applyProductDiscount, { isLoading: isApplying }] =
+    useApplyProductDiscountMutation();
+
+  const handleApplyDiscount = async () => {
+    if (!discountValue || parseFloat(discountValue) <= 0) {
+      toast.error("Please enter a valid discount value");
+      return;
+    }
+    if (discountType === "percentage" && parseFloat(discountValue) > 99) {
+      toast.error("Percentage discount must be less than 100%");
+      return;
+    }
+    try {
+      await applyProductDiscount({
+        id: product.id,
+        discount_type: discountType,
+        discount_value: parseFloat(discountValue),
+      }).unwrap();
+      toast.success("Discount applied successfully");
+      setIsDiscountOpen(false);
+      setDiscountValue("");
+    } catch {
+      toast.error("Failed to apply discount. Please try again.");
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-[6px_6px_54px_0px_#0000000D] hover:shadow-sm transition-all duration-200 border-none flex flex-col h-full group">
@@ -108,17 +153,78 @@ export default function ProductCard({
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="mt-auto pt-4">
+        {/* Action Buttons */}
+        <div className="mt-auto pt-4 flex gap-2">
           <button
             onClick={() => onEdit(product)}
-            className="w-full py-2 px-3 sm:py-2.5 sm:px-4 bg-[#E2EAF8] text-black font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-2 px-3 sm:py-2.5 sm:px-4 bg-[#E2EAF8] text-black font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
-            {/* Image icon seems to be Edit Product text in button in Figma */}
             Edit Product
+          </button>
+          <button
+            onClick={() => {
+              setDiscountType("amount");
+              setDiscountValue("");
+              setIsDiscountOpen(true);
+            }}
+            className="py-2 px-3 sm:py-2.5 sm:px-3 bg-primary/10 text-primary font-semibold rounded-xl hover:bg-primary/20 transition-colors flex items-center justify-center cursor-pointer"
+            title="Apply Discount"
+          >
+            <Tag className="w-4 h-4" />
           </button>
         </div>
       </div>
+
+      {/* Individual Discount Modal */}
+      <Dialog open={isDiscountOpen} onOpenChange={setIsDiscountOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apply Discount — {product.title}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 mt-2">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Discount Type</label>
+              <Select
+                value={discountType}
+                onValueChange={(value: "amount" | "percentage") =>
+                  setDiscountType(value)
+                }
+              >
+                <SelectTrigger className="h-11 rounded-lg">
+                  <SelectValue placeholder="Select discount type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="amount">Amount (£)</SelectItem>
+                  <SelectItem value="percentage">Percentage (%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Discount Value</label>
+              <Input
+                type="number"
+                placeholder={
+                  discountType === "percentage"
+                    ? "Enter percentage value (max 99)"
+                    : "Enter amount value"
+                }
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+                className="h-11 rounded-lg"
+                min="0"
+                max={discountType === "percentage" ? "99" : undefined}
+              />
+            </div>
+            <Button
+              onClick={handleApplyDiscount}
+              disabled={isApplying}
+              className="h-11 rounded-lg mt-2"
+            >
+              {isApplying ? "Applying..." : "Apply Discount"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

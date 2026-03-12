@@ -193,6 +193,26 @@ export const productsAPI = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["BulkDiscount", { type: "Product", id: "LIST" }],
     }),
+
+    // Apply individual product discount
+    applyProductDiscount: builder.mutation<
+      void,
+      {
+        id: string;
+        discount_type: "amount" | "percentage";
+        discount_value: number;
+      }
+    >({
+      query: ({ id, ...data }) => ({
+        url: `/retailer/retailer/products/${id}/discount/`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Product", id },
+        { type: "Product", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -204,4 +224,5 @@ export const {
   useDeleteProductMutation,
   useGetBulkDiscountQuery,
   useApplyBulkDiscountMutation,
+  useApplyProductDiscountMutation,
 } = productsAPI;
