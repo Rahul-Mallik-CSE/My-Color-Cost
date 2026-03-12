@@ -67,8 +67,15 @@ export default function ProductCard({
           <div className="flex items-baseline gap-2 flex-wrap">
             <span className="text-primary font-bold text-base sm:text-lg">
               {product.currency}
-              {product.price.toFixed(2)}
+              {(product.discountedPrice ?? product.price).toFixed(2)}
             </span>
+            {product.discountedPrice !== undefined &&
+              product.discountedPrice !== product.price && (
+                <span className="text-gray-400 font-medium text-sm line-through">
+                  {product.currency}
+                  {product.price.toFixed(2)}
+                </span>
+              )}
             {product.vat !== undefined && product.vat > 0 && (
               <span className="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full">
                 +{product.currency}

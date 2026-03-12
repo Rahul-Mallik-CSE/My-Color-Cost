@@ -7,6 +7,7 @@ export interface ProductAPI {
   description: string;
   image_url: string;
   market_price: string;
+  discounted_market_price: string;
   quantity: number;
   stock_status: string;
   vat: string;
@@ -22,6 +23,7 @@ export interface Product {
   id: string;
   title: string;
   price: number;
+  discountedPrice?: number;
   currency: string;
   image: string;
   stock: number | string;

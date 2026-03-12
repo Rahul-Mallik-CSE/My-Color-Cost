@@ -11,6 +11,9 @@ const transformProduct = (apiProduct: ProductAPI): Product => {
     id: apiProduct.id.toString(),
     title: apiProduct.name,
     price: parseFloat(apiProduct.market_price),
+    discountedPrice: apiProduct.discounted_market_price
+      ? parseFloat(apiProduct.discounted_market_price)
+      : undefined,
     currency: "£",
     image: getFullImageUrl(apiProduct.image_url),
     stock: apiProduct.quantity,
