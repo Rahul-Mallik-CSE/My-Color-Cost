@@ -154,6 +154,7 @@ export default function ProductsPage() {
       <div className="p-4 md:p-8 flex flex-col gap-4 sm:gap-6">
         {/* Header Actions */}
         <div className="flex  justify-end gap-4">
+          <Button className="h-13 rounded-xl">Global Promo Setup</Button>
           <Button
             className="h-13 rounded-xl"
             onClick={() => setIsModalOpen(true)}
@@ -170,7 +171,7 @@ export default function ProductsPage() {
         </div>
 
         {/* API Key Warning */}
-        {data?.apiKey && (
+        {data?.apiKey && (!data?.products || data?.products.length === 0) && (
           <div className="bg-red-50 border border-red-300 rounded-xl p-4">
             <p className="text-sm font-semibold text-red-600">
               Api key is not correct. Please add product manually
