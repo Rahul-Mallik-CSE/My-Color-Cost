@@ -155,11 +155,13 @@ export default function ProductCard({
           </div>
 
           {/* Stock Status */}
-          {product.stockStatus === "in_stock" && (
+          {product.stock === 0 ? (
+            <p className="text-red-600 font-semibold text-sm mt-1">Stock Out</p>
+          ) : product.stockStatus === "in_stock" ? (
             <p className="text-green-600 font-semibold text-sm mt-1">
-              ✓ In Stock
+              ✓ In Stock ({product.stock})
             </p>
-          )}
+          ) : null}
 
           {/* Promo Display */}
           {product.promoIsActive &&
