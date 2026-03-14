@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Star, Trash2, Tag } from "lucide-react";
+import { Star, Trash2, Tag, Gift } from "lucide-react";
 import { Product } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ProductPromoModal from "./ProductPromoModal";
 
 interface ProductCardProps {
   product: Product;
@@ -37,6 +38,7 @@ export default function ProductCard({
   onDelete,
 }: ProductCardProps) {
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
   const [discountType, setDiscountType] = useState<"amount" | "percentage">(
     "amount",
   );
@@ -151,6 +153,22 @@ export default function ProductCard({
               ({product.reviewsCount})
             </span>
           </div>
+
+          {/* Stock Status */}
+          {product.stockStatus === "in_stock" && (
+            <p className="text-green-600 font-semibold text-sm mt-1">
+              ✓ In Stock
+            </p>
+          )}
+
+          {/* Promo Display */}
+          {product.promoIsActive &&
+            product.promoBuyQuantity &&
+            product.promoFreeQuantity && (
+              <p className="text-green-600 font-semibold text-sm mt-1">
+                Buy {product.promoBuyQuantity} get {product.promoFreeQuantity}
+              </p>
+            )}
         </div>
 
         {/* Action Buttons */}
@@ -160,6 +178,13 @@ export default function ProductCard({
             className="flex-1 py-2 px-3 sm:py-2.5 sm:px-4 bg-[#E2EAF8] text-black font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
             Edit Product
+          </button>
+          <button
+            onClick={() => setIsPromoOpen(true)}
+            className="py-2 px-3 sm:py-2.5 sm:px-3 bg-green-100 text-green-600 font-semibold rounded-xl hover:bg-green-200 transition-colors flex items-center justify-center cursor-pointer"
+            title="Apply Promo"
+          >
+            <Gift className="w-4 h-4" />
           </button>
           <button
             onClick={() => {
@@ -225,6 +250,16 @@ export default function ProductCard({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Product Promo Modal */}
+      <ProductPromoModal
+        isOpen={isPromoOpen}
+        onOpenChange={setIsPromoOpen}
+        productId={product.id}
+        productName={product.title}
+        currentPromoBuyQuantity={product.promoBuyQuantity}
+        currentPromoFreeQuantity={product.promoFreeQuantity}
+      />
     </div>
   );
 }

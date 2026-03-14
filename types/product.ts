@@ -14,6 +14,9 @@ export interface ProductAPI {
   retailer_name: string;
   average_rating: string;
   total_reviews: number;
+  promo_is_active: boolean;
+  promo_buy_quantity: number | null;
+  promo_free_quantity: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +36,10 @@ export interface Product {
   category?: string;
   availableProduct?: number;
   vat?: number;
+  promoIsActive?: boolean;
+  promoBuyQuantity?: number | null;
+  promoFreeQuantity?: number | null;
+  stockStatus?: string;
 }
 
 // API Response wrapper

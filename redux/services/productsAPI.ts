@@ -22,6 +22,10 @@ const transformProduct = (apiProduct: ProductAPI): Product => {
     description: apiProduct.description,
     availableProduct: apiProduct.quantity,
     vat: parseFloat(apiProduct.vat),
+    promoIsActive: apiProduct.promo_is_active,
+    promoBuyQuantity: apiProduct.promo_buy_quantity,
+    promoFreeQuantity: apiProduct.promo_free_quantity,
+    stockStatus: apiProduct.stock_status,
   };
 };
 
@@ -214,6 +218,72 @@ export const productsAPI = apiSlice.injectEndpoints({
         { type: "Product", id: "LIST" },
       ],
     }),
+
+    // Apply bulk promo
+    applyBulkPromo: builder.mutation<
+      {
+        products_affected: number;
+        promo_label: string;
+        scope: string;
+      },
+      { promo_buy_quantity: number; promo_free_quantity: number }
+    >({
+      query: (data) => ({
+        url: `/retailer/retailer/promos/bulk/`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: [{ type: "Product", id: "LIST" }],
+    }),
+
+    // Remove bulk promo
+    removeBulkPromo: builder.mutation<{ products_affected: number }, void>({
+      query: () => ({
+        url: `/retailer/retailer/promos/bulk/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "Product", id: "LIST" }],
+    }),
+
+    // Apply product-specific promo
+    applyProductPromo: builder.mutation<
+      {
+        product_id: number;
+        product_name: string;
+        promo_label: string;
+        promo_is_active: boolean;
+      },
+      {
+        productId: string;
+        promo_buy_quantity: number;
+        promo_free_quantity: number;
+      }
+    >({
+      query: ({ productId, ...data }) => ({
+        url: `/retailer/retailer/promos/product/${productId}/`,
+        method: "POST",
+        body: {
+          promo_buy_quantity: data.promo_buy_quantity,
+          promo_free_quantity: data.promo_free_quantity,
+        },
+      }),
+      invalidatesTags: (result, error, { productId }) => [
+        { type: "Product", id: productId },
+        { type: "Product", id: "LIST" },
+      ],
+    }),
+
+    // Remove product-specific promo
+    removeProductPromo: builder.mutation<void, string>({
+      query: (productId) => ({
+        url: `/retailer/retailer/promos/product/${productId}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, productId) => [
+        { type: "Product", id: productId },
+        { type: "Product", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -226,4 +296,8 @@ export const {
   useGetBulkDiscountQuery,
   useApplyBulkDiscountMutation,
   useApplyProductDiscountMutation,
+  useApplyBulkPromoMutation,
+  useRemoveBulkPromoMutation,
+  useApplyProductPromoMutation,
+  useRemoveProductPromoMutation,
 } = productsAPI;

@@ -2,11 +2,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DashboardHeader from "@/components/Shared/DashboardHeader";
 import ProductCard from "@/components/(Dashboard)/Products/ProductCard";
 import { Pagination } from "@/components/Shared/Pagination";
 import { DeleteConfirmationModal } from "@/components/Shared/DeleteConfirmationModal";
+import GlobalPromoModal from "@/components/(Dashboard)/Products/GlobalPromoModal";
 import { Product } from "@/types/product";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -43,6 +44,7 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [discountType, setDiscountType] = useState<"amount" | "percentage">(
     "amount",
@@ -67,17 +69,6 @@ export default function ProductsPage() {
 
   // Get latest discount from history (index 0)
   const latestDiscount = discountData?.history?.[0];
-
-  // Set initial values from latest discount when modal opens
-  useEffect(() => {
-    if (isModalOpen && latestDiscount) {
-      setDiscountType(latestDiscount.discount_type);
-      setDiscountValue(parseFloat(latestDiscount.discount_value).toString());
-    } else if (isModalOpen) {
-      setDiscountType("amount");
-      setDiscountValue("");
-    }
-  }, [isModalOpen, latestDiscount]);
 
   // Format discount display
   const getDiscountDisplay = () => {
@@ -154,7 +145,12 @@ export default function ProductsPage() {
       <div className="p-4 md:p-8 flex flex-col gap-4 sm:gap-6">
         {/* Header Actions */}
         <div className="flex  justify-end gap-4">
-          <Button className="h-13 rounded-xl">Global Promo Setup</Button>
+          <Button
+            className="h-13 rounded-xl"
+            onClick={() => setIsPromoModalOpen(true)}
+          >
+            Global Promo Setup
+          </Button>
           <Button
             className="h-13 rounded-xl"
             onClick={() => setIsModalOpen(true)}
@@ -243,6 +239,12 @@ export default function ProductsPage() {
         onConfirm={handleConfirmDelete}
         title="Delete Product"
         description="Are you sure you want to delete this product? This action cannot be undone."
+      />
+
+      {/* Global Promo Modal */}
+      <GlobalPromoModal
+        isOpen={isPromoModalOpen}
+        onOpenChange={setIsPromoModalOpen}
       />
 
       {/* Global Deal Setup Modal */}
