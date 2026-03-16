@@ -102,6 +102,7 @@ export default function ProductsPage() {
 
   // Get latest discount from history (index 0)
   const latestDiscount = discountData?.history?.[0];
+  const hasProducts = (data?.products?.length || 0) > 0;
 
   // Format discount display
   const getDiscountDisplay = () => {
@@ -417,7 +418,7 @@ export default function ProductsPage() {
               className="h-13 rounded-xl"
               onClick={() => router.push("/settings")}
             >
-              Add Stripe
+              Connect with Stripe
             </Button>
           ) : (
             <Link
@@ -433,8 +434,7 @@ export default function ProductsPage() {
         {isStripeDisconnected && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
             <p className="text-sm font-semibold text-amber-800">
-              Stripe is not connected. Add Stripe to enable product actions and
-              add new products.
+              Stripe connection required to activate retail operations.
             </p>
           </div>
         )}
@@ -449,12 +449,26 @@ export default function ProductsPage() {
         )}
 
         {/* Discount Headline */}
-        <div className="bg-white rounded-xl shadow-sm border p-4">
-          <p className="text-sm font-medium text-muted-foreground">
-            Current Discount
-          </p>
-          <p className="text-lg font-semibold">{getDiscountDisplay()}</p>
-        </div>
+        {hasProducts && (
+          <div className="rounded-2xl border border-pink-300 bg-white px-5 py-4 shadow-sm sm:px-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Current Discount
+                </p>
+                <p className="text-lg font-semibold text-foreground sm:text-xl">
+                  {getDiscountDisplay()}
+                </p>
+              </div>
+              <Badge
+                variant={latestDiscount ? "default" : "outline"}
+                className="w-fit"
+              >
+                {latestDiscount ? "Active" : "No Active Discount"}
+              </Badge>
+            </div>
+          </div>
+        )}
 
         {/* Error State */}
         {error && (
