@@ -16,6 +16,7 @@ import { Gift, Pencil, Plus, Star, Tag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { TableSkeleton } from "@/components/Skeleton/TableSkeleton";
 import {
+  useGetStripeStatusQuery,
   useGetAllProductsQuery,
   useDeleteProductMutation,
   useGetBulkDiscountQuery,
@@ -81,6 +82,7 @@ export default function ProductsPage() {
     page: currentPage,
     limit: ITEMS_PER_PAGE,
   });
+  const { data: stripeStatus } = useGetStripeStatusQuery();
 
   // Fetch bulk discount history
   const { data: discountData } = useGetBulkDiscountQuery();
@@ -127,6 +129,8 @@ export default function ProductsPage() {
     !allVisibleSelected &&
     filteredProducts.some((product) => selectedProductIds.includes(product.id));
   const selectedProductCount = selectedProductIds.length;
+  const isStripeConnected = stripeStatus?.stripe_connected !== false;
+  const isStripeDisconnected = !isStripeConnected;
 
   const formatMoney = (product: Product, value: number) => {
     return `${product.currency}${value.toFixed(2)}`;
@@ -276,6 +280,11 @@ export default function ProductsPage() {
   };
 
   const handleOpenSelectedPromoModal = () => {
+    if (isStripeDisconnected) {
+      toast.error("Connect Stripe to manage product promos");
+      return;
+    }
+
     if (selectedProductCount === 0) {
       toast.error("Please select at least one product");
       return;
@@ -354,6 +363,11 @@ export default function ProductsPage() {
   };
 
   const handleApplyDiscount = async () => {
+    if (isStripeDisconnected) {
+      toast.error("Connect Stripe to apply discounts");
+      return;
+    }
+
     if (!discountValue || parseFloat(discountValue) <= 0) {
       toast.error("Please enter a valid discount value");
       return;
@@ -386,24 +400,44 @@ export default function ProductsPage() {
         <div className="flex  justify-end gap-4">
           <Button
             className="h-13 rounded-xl"
+            disabled={isStripeDisconnected}
             onClick={() => setIsPromoModalOpen(true)}
           >
             Global Promo Setup
           </Button>
           <Button
             className="h-13 rounded-xl"
+            disabled={isStripeDisconnected}
             onClick={() => setIsModalOpen(true)}
           >
             Global Deal Setup
           </Button>
-          <Link
-            href="/products/add"
-            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold transition-colors shadow-lg shadow-primary/20"
-          >
-            <Plus className="w-5 h-5" />
-            Add New Product
-          </Link>
+          {isStripeDisconnected ? (
+            <Button
+              className="h-13 rounded-xl"
+              onClick={() => router.push("/settings")}
+            >
+              Add Stripe
+            </Button>
+          ) : (
+            <Link
+              href="/products/add"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold transition-colors shadow-lg shadow-primary/20"
+            >
+              <Plus className="w-5 h-5" />
+              Add New Product
+            </Link>
+          )}
         </div>
+
+        {isStripeDisconnected && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+            <p className="text-sm font-semibold text-amber-800">
+              Stripe is not connected. Add Stripe to enable product actions and
+              add new products.
+            </p>
+          </div>
+        )}
 
         {/* API Key Warning */}
         {data?.apiKey && (!data?.products || data?.products.length === 0) && (
@@ -455,7 +489,7 @@ export default function ProductsPage() {
                 />
                 <Button
                   onClick={handleOpenSelectedPromoModal}
-                  disabled={selectedProductCount === 0}
+                  disabled={selectedProductCount === 0 || isStripeDisconnected}
                   className="h-10 rounded-lg whitespace-nowrap"
                 >
                   Selected Promo Setup ({selectedProductCount})
@@ -468,6 +502,7 @@ export default function ProductsPage() {
                 <TableRow className="border-b-2 border-pink-500 bg-muted/40 hover:bg-muted/40">
                   <TableHead className="w-14">
                     <Checkbox
+                      disabled={isStripeDisconnected}
                       checked={
                         allVisibleSelected
                           ? true
@@ -495,6 +530,7 @@ export default function ProductsPage() {
                   <TableRow key={product.id} className="hover:bg-muted/20">
                     <TableCell>
                       <Checkbox
+                        disabled={isStripeDisconnected}
                         checked={selectedProductIds.includes(product.id)}
                         onCheckedChange={(checked) =>
                           handleSelectProduct(product.id, checked === true)
@@ -577,6 +613,7 @@ export default function ProductsPage() {
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={isStripeDisconnected}
                           onClick={() => handleEditClick(product)}
                           className="h-9 rounded-lg"
                         >
@@ -586,6 +623,7 @@ export default function ProductsPage() {
                         <Button
                           variant="outline"
                           size="icon"
+                          disabled={isStripeDisconnected}
                           onClick={() => setPromoProduct(product)}
                           className="h-9 w-9 rounded-lg text-emerald-600"
                           title="Apply Promo"
@@ -595,6 +633,7 @@ export default function ProductsPage() {
                         <Button
                           variant="outline"
                           size="icon"
+                          disabled={isStripeDisconnected}
                           onClick={() => handleOpenProductDiscount(product)}
                           className="h-9 w-9 rounded-lg text-primary"
                           title="Apply Discount"
@@ -604,6 +643,7 @@ export default function ProductsPage() {
                         <Button
                           variant="outline"
                           size="icon"
+                          disabled={isStripeDisconnected}
                           onClick={() => handleDeleteClick(product.id)}
                           className="h-9 w-9 rounded-lg text-red-600"
                           title="Delete Product"
@@ -656,7 +696,7 @@ export default function ProductsPage() {
 
       {/* Global Promo Modal */}
       <GlobalPromoModal
-        isOpen={isPromoModalOpen}
+        isOpen={isStripeDisconnected ? false : isPromoModalOpen}
         onOpenChange={setIsPromoModalOpen}
       />
 
@@ -718,7 +758,7 @@ export default function ProductsPage() {
 
             <Button
               onClick={handleApplyDiscount}
-              disabled={isApplying}
+              disabled={isApplying || isStripeDisconnected}
               className="h-11 rounded-lg mt-2"
             >
               {isApplying ? "Applying..." : "Apply Discount"}
@@ -781,7 +821,7 @@ export default function ProductsPage() {
 
             <Button
               onClick={handleApplyProductDiscount}
-              disabled={isApplyingProductDiscount}
+              disabled={isApplyingProductDiscount || isStripeDisconnected}
               className="mt-2 h-11 rounded-lg"
             >
               {isApplyingProductDiscount ? "Applying..." : "Apply Discount"}
@@ -829,7 +869,11 @@ export default function ProductsPage() {
             <div className="mt-2 flex gap-3">
               <Button
                 onClick={handleApplySelectedPromo}
-                disabled={isApplyingSelectedPromo || isRemovingSelectedPromo}
+                disabled={
+                  isApplyingSelectedPromo ||
+                  isRemovingSelectedPromo ||
+                  isStripeDisconnected
+                }
                 className="h-11 flex-1 rounded-lg"
               >
                 {isApplyingSelectedPromo ? "Applying..." : "Apply Promo"}
@@ -837,7 +881,11 @@ export default function ProductsPage() {
               <Button
                 variant="outline"
                 onClick={handleRemoveSelectedPromo}
-                disabled={isApplyingSelectedPromo || isRemovingSelectedPromo}
+                disabled={
+                  isApplyingSelectedPromo ||
+                  isRemovingSelectedPromo ||
+                  isStripeDisconnected
+                }
                 className="h-11 flex-1 rounded-lg"
               >
                 {isRemovingSelectedPromo ? "Removing..." : "Remove Promo"}

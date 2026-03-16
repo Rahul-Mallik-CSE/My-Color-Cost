@@ -31,6 +31,27 @@ const transformProduct = (apiProduct: ProductAPI): Product => {
 
 export const productsAPI = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    // Get Stripe connection status
+    getStripeStatus: builder.query<
+      {
+        stripe_connected: boolean;
+        stripe_connection_status: string;
+        stripe_account_id: string | null;
+        connection_date: string | null;
+      },
+      void
+    >({
+      query: () => `/retailer/stripe/status/`,
+      transformResponse: (response: {
+        data: {
+          stripe_connected: boolean;
+          stripe_connection_status: string;
+          stripe_account_id: string | null;
+          connection_date: string | null;
+        };
+      }) => response.data,
+    }),
+
     // Get all products with pagination
     getAllProducts: builder.query<
       { products: Product[]; totalCount: number; apiKey: string | null },
@@ -322,6 +343,7 @@ export const productsAPI = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetStripeStatusQuery,
   useGetAllProductsQuery,
   useGetProductQuery,
   useCreateProductMutation,
