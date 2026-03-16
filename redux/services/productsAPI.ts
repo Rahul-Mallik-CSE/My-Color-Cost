@@ -240,6 +240,36 @@ export const productsAPI = apiSlice.injectEndpoints({
       ],
     }),
 
+    // Remove bulk discount (all products)
+    removeBulkDiscount: builder.mutation<void, void>({
+      query: () => ({
+        url: `/retailer/retailer/products/bulk-discount/`,
+        method: "DELETE",
+        body: { product_ids: [] },
+      }),
+      invalidatesTags: ["BulkDiscount", { type: "Product", id: "LIST" }],
+    }),
+
+    // Remove individual product discount
+    removeProductDiscount: builder.mutation<
+      {
+        product_id: number;
+        product_name: string;
+        market_price: string;
+        discount_removed: boolean;
+      },
+      string
+    >({
+      query: (id) => ({
+        url: `/retailer/retailer/products/${id}/discount/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, id) => [
+        { type: "Product", id },
+        { type: "Product", id: "LIST" },
+      ],
+    }),
+
     // Apply bulk promo
     applyBulkPromo: builder.mutation<
       {
@@ -351,7 +381,9 @@ export const {
   useDeleteProductMutation,
   useGetBulkDiscountQuery,
   useApplyBulkDiscountMutation,
+  useRemoveBulkDiscountMutation,
   useApplyProductDiscountMutation,
+  useRemoveProductDiscountMutation,
   useApplyBulkPromoMutation,
   useRemoveBulkPromoMutation,
   useApplySelectedProductsPromoMutation,

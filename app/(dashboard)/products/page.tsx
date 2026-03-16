@@ -21,7 +21,9 @@ import {
   useDeleteProductMutation,
   useGetBulkDiscountQuery,
   useApplyBulkDiscountMutation,
+  useRemoveBulkDiscountMutation,
   useApplyProductDiscountMutation,
+  useRemoveProductDiscountMutation,
   useApplySelectedProductsPromoMutation,
   useRemoveSelectedProductsPromoMutation,
 } from "@/redux/services/productsAPI";
@@ -93,8 +95,12 @@ export default function ProductsPage() {
   // Apply bulk discount mutation
   const [applyBulkDiscount, { isLoading: isApplying }] =
     useApplyBulkDiscountMutation();
+  const [removeBulkDiscount, { isLoading: isRemovingBulkDiscount }] =
+    useRemoveBulkDiscountMutation();
   const [applyProductDiscount, { isLoading: isApplyingProductDiscount }] =
     useApplyProductDiscountMutation();
+  const [removeProductDiscount, { isLoading: isRemovingProductDiscount }] =
+    useRemoveProductDiscountMutation();
   const [applySelectedProductsPromo, { isLoading: isApplyingSelectedPromo }] =
     useApplySelectedProductsPromoMutation();
   const [removeSelectedProductsPromo, { isLoading: isRemovingSelectedPromo }] =
@@ -359,6 +365,33 @@ export default function ProductsPage() {
       const errorMessage =
         (error as { data?: { message?: string } })?.data?.message ||
         "Failed to remove promo for selected products. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRemoveBulkDiscount = async () => {
+    try {
+      await removeBulkDiscount().unwrap();
+      toast.success("Discount removed from all products");
+      setIsModalOpen(false);
+    } catch (error) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Failed to remove discount. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRemoveProductDiscount = async () => {
+    if (!discountProduct) return;
+    try {
+      await removeProductDiscount(discountProduct.id).unwrap();
+      toast.success("Discount removed successfully");
+      setDiscountProduct(null);
+    } catch (error) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Failed to remove discount. Please try again.";
       toast.error(errorMessage);
     }
   };
@@ -769,13 +802,27 @@ export default function ProductsPage() {
               />
             </div>
 
-            <Button
-              onClick={handleApplyDiscount}
-              disabled={isApplying || isStripeDisconnected}
-              className="h-11 rounded-lg mt-2"
-            >
-              {isApplying ? "Applying..." : "Apply Discount"}
-            </Button>
+            <div className="mt-2 flex gap-3">
+              <Button
+                onClick={handleApplyDiscount}
+                disabled={
+                  isApplying || isRemovingBulkDiscount || isStripeDisconnected
+                }
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isApplying ? "Applying..." : "Apply Discount"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleRemoveBulkDiscount}
+                disabled={
+                  isApplying || isRemovingBulkDiscount || isStripeDisconnected
+                }
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isRemovingBulkDiscount ? "Removing..." : "Remove Discount"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -832,13 +879,31 @@ export default function ProductsPage() {
               />
             </div>
 
-            <Button
-              onClick={handleApplyProductDiscount}
-              disabled={isApplyingProductDiscount || isStripeDisconnected}
-              className="mt-2 h-11 rounded-lg"
-            >
-              {isApplyingProductDiscount ? "Applying..." : "Apply Discount"}
-            </Button>
+            <div className="mt-2 flex gap-3">
+              <Button
+                onClick={handleApplyProductDiscount}
+                disabled={
+                  isApplyingProductDiscount ||
+                  isRemovingProductDiscount ||
+                  isStripeDisconnected
+                }
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isApplyingProductDiscount ? "Applying..." : "Apply Discount"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleRemoveProductDiscount}
+                disabled={
+                  isApplyingProductDiscount ||
+                  isRemovingProductDiscount ||
+                  isStripeDisconnected
+                }
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isRemovingProductDiscount ? "Removing..." : "Remove Discount"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
