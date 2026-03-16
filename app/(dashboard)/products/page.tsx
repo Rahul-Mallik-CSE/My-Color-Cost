@@ -477,40 +477,39 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Product Table */}
-        {isLoading || isFetching ? (
-          <div className="rounded-2xl border bg-white shadow-sm">
-            <TableSkeleton rowCount={ITEMS_PER_PAGE} />
-          </div>
-        ) : filteredProducts.length > 0 ? (
-          <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-            <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <div>
-                <p className="text-xl md:text-3xl font-semibold text-foreground">
-                  Products Table
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedProductCount} selected
-                </p>
-              </div>
-
-              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                <Input
-                  placeholder="Search products in table..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="h-10 w-full sm:w-72"
-                />
-                <Button
-                  onClick={handleOpenSelectedPromoModal}
-                  disabled={selectedProductCount === 0 || isStripeDisconnected}
-                  className="h-10 rounded-lg whitespace-nowrap"
-                >
-                  Selected Promo Setup ({selectedProductCount})
-                </Button>
-              </div>
+        <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+          <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div>
+              <p className="text-xl md:text-3xl font-semibold text-foreground">
+                Products Table
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {selectedProductCount} selected
+              </p>
             </div>
 
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <Input
+                placeholder="Search products in table..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="h-10 w-full sm:w-72"
+              />
+              <Button
+                onClick={handleOpenSelectedPromoModal}
+                disabled={selectedProductCount === 0 || isStripeDisconnected}
+                className="h-10 rounded-lg whitespace-nowrap"
+              >
+                Selected Promo Setup ({selectedProductCount})
+              </Button>
+            </div>
+          </div>
+          {/* Product Table */}
+          {isLoading || isFetching ? (
+            <div className="rounded-2xl border bg-white shadow-sm">
+              <TableSkeleton rowCount={ITEMS_PER_PAGE} />
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <Table className="min-w-245">
               <TableHeader>
                 <TableRow className="border-b-2 border-pink-500 bg-muted/40 hover:bg-muted/40">
@@ -670,18 +669,18 @@ export default function ProductsPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
-        ) : (
-          <div className="text-center py-10 sm:py-20 text-gray-500 flex flex-col items-center gap-4">
-            <Image
-              src="/images/empty-state.webp"
-              alt="Empty State"
-              width={200}
-              height={200}
-            />
-            No products found.
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-10 sm:py-20 text-gray-500 flex flex-col items-center gap-4">
+              <Image
+                src="/images/empty-state.webp"
+                alt="Empty State"
+                width={200}
+                height={200}
+              />
+              No products found.
+            </div>
+          )}
+        </div>
 
         {/* Pagination */}
         {!isLoading &&
