@@ -21,6 +21,8 @@ import {
   useGetBulkDiscountQuery,
   useApplyBulkDiscountMutation,
   useApplyProductDiscountMutation,
+  useApplySelectedProductsPromoMutation,
+  useRemoveSelectedProductsPromoMutation,
 } from "@/redux/services/productsAPI";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,6 +70,11 @@ export default function ProductsPage() {
     "amount" | "percentage"
   >("amount");
   const [productDiscountValue, setProductDiscountValue] = useState("");
+  const [isSelectedPromoModalOpen, setIsSelectedPromoModalOpen] =
+    useState(false);
+  const [selectedPromoBuyQuantity, setSelectedPromoBuyQuantity] = useState("");
+  const [selectedPromoFreeQuantity, setSelectedPromoFreeQuantity] =
+    useState("");
 
   // Fetch products from API
   const { data, isLoading, isFetching, error } = useGetAllProductsQuery({
@@ -86,6 +93,10 @@ export default function ProductsPage() {
     useApplyBulkDiscountMutation();
   const [applyProductDiscount, { isLoading: isApplyingProductDiscount }] =
     useApplyProductDiscountMutation();
+  const [applySelectedProductsPromo, { isLoading: isApplyingSelectedPromo }] =
+    useApplySelectedProductsPromoMutation();
+  const [removeSelectedProductsPromo, { isLoading: isRemovingSelectedPromo }] =
+    useRemoveSelectedProductsPromoMutation();
 
   // Get latest discount from history (index 0)
   const latestDiscount = discountData?.history?.[0];
@@ -115,6 +126,7 @@ export default function ProductsPage() {
   const someVisibleSelected =
     !allVisibleSelected &&
     filteredProducts.some((product) => selectedProductIds.includes(product.id));
+  const selectedProductCount = selectedProductIds.length;
 
   const formatMoney = (product: Product, value: number) => {
     return `${product.currency}${value.toFixed(2)}`;
@@ -263,6 +275,84 @@ export default function ProductsPage() {
     }
   };
 
+  const handleOpenSelectedPromoModal = () => {
+    if (selectedProductCount === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+    setSelectedPromoBuyQuantity("");
+    setSelectedPromoFreeQuantity("");
+    setIsSelectedPromoModalOpen(true);
+  };
+
+  const handleApplySelectedPromo = async () => {
+    if (!selectedPromoBuyQuantity || !selectedPromoFreeQuantity) {
+      toast.error("Please enter both buy and free quantities");
+      return;
+    }
+
+    const buyQty = parseInt(selectedPromoBuyQuantity, 10);
+    const freeQty = parseInt(selectedPromoFreeQuantity, 10);
+
+    if (buyQty <= 0 || freeQty <= 0) {
+      toast.error("Quantities must be greater than 0");
+      return;
+    }
+
+    if (freeQty >= buyQty) {
+      toast.error(
+        "Free quantity must be less than buy quantity. Example: buy 5 get 1 free.",
+      );
+      return;
+    }
+
+    const productIds = selectedProductIds
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
+
+    if (productIds.length === 0) {
+      toast.error("Selected products are invalid");
+      return;
+    }
+
+    try {
+      await applySelectedProductsPromo({
+        promo_buy_quantity: buyQty,
+        promo_free_quantity: freeQty,
+        product_ids: productIds,
+      }).unwrap();
+      toast.success("Promo applied to selected products");
+      setIsSelectedPromoModalOpen(false);
+    } catch (error) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Failed to apply promo for selected products. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRemoveSelectedPromo = async () => {
+    const productIds = selectedProductIds
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
+
+    if (productIds.length === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+
+    try {
+      await removeSelectedProductsPromo({ product_ids: productIds }).unwrap();
+      toast.success("Promo removed from selected products");
+      setIsSelectedPromoModalOpen(false);
+    } catch (error) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Failed to remove promo for selected products. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
   const handleApplyDiscount = async () => {
     if (!discountValue || parseFloat(discountValue) <= 0) {
       toast.error("Please enter a valid discount value");
@@ -339,21 +429,37 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Product Grid */}
+        {/* Product Table */}
         {isLoading || isFetching ? (
           <div className="rounded-2xl border bg-white shadow-sm">
             <TableSkeleton rowCount={ITEMS_PER_PAGE} />
           </div>
         ) : filteredProducts.length > 0 ? (
           <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between gap-4  px-4 py-3 sm:px-6">
+            <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <div>
                 <p className="text-xl md:text-3xl font-semibold text-foreground">
                   Products Table
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedProductIds.length} selected on this page set
+                  {selectedProductCount} selected
                 </p>
+              </div>
+
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                <Input
+                  placeholder="Search products in table..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="h-10 w-full sm:w-72"
+                />
+                <Button
+                  onClick={handleOpenSelectedPromoModal}
+                  disabled={selectedProductCount === 0}
+                  className="h-10 rounded-lg whitespace-nowrap"
+                >
+                  Selected Promo Setup ({selectedProductCount})
+                </Button>
               </div>
             </div>
 
@@ -680,6 +786,63 @@ export default function ProductsPage() {
             >
               {isApplyingProductDiscount ? "Applying..." : "Apply Discount"}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isSelectedPromoModalOpen}
+        onOpenChange={setIsSelectedPromoModalOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Selected Promo Setup ({selectedProductCount} products)
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="mt-2 flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Buy Quantity</label>
+              <Input
+                type="number"
+                placeholder="e.g., 3"
+                value={selectedPromoBuyQuantity}
+                onChange={(e) => setSelectedPromoBuyQuantity(e.target.value)}
+                className="h-11 rounded-lg"
+                min="1"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Free Quantity</label>
+              <Input
+                type="number"
+                placeholder="e.g., 1"
+                value={selectedPromoFreeQuantity}
+                onChange={(e) => setSelectedPromoFreeQuantity(e.target.value)}
+                className="h-11 rounded-lg"
+                min="1"
+              />
+            </div>
+
+            <div className="mt-2 flex gap-3">
+              <Button
+                onClick={handleApplySelectedPromo}
+                disabled={isApplyingSelectedPromo || isRemovingSelectedPromo}
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isApplyingSelectedPromo ? "Applying..." : "Apply Promo"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleRemoveSelectedPromo}
+                disabled={isApplyingSelectedPromo || isRemovingSelectedPromo}
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isRemovingSelectedPromo ? "Removing..." : "Remove Promo"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

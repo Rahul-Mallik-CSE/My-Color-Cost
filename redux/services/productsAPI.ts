@@ -245,6 +245,40 @@ export const productsAPI = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "Product", id: "LIST" }],
     }),
 
+    // Apply promo for selected products
+    applySelectedProductsPromo: builder.mutation<
+      {
+        products_affected: number;
+        promo_label: string;
+        scope: string;
+      },
+      {
+        promo_buy_quantity: number;
+        promo_free_quantity: number;
+        product_ids: number[];
+      }
+    >({
+      query: (data) => ({
+        url: `/retailer/retailer/promos/bulk/`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: [{ type: "Product", id: "LIST" }],
+    }),
+
+    // Remove promo for selected products
+    removeSelectedProductsPromo: builder.mutation<
+      { products_affected: number },
+      { product_ids: number[] }
+    >({
+      query: (data) => ({
+        url: `/retailer/retailer/promos/bulk/`,
+        method: "DELETE",
+        body: data,
+      }),
+      invalidatesTags: [{ type: "Product", id: "LIST" }],
+    }),
+
     // Apply product-specific promo
     applyProductPromo: builder.mutation<
       {
@@ -298,6 +332,8 @@ export const {
   useApplyProductDiscountMutation,
   useApplyBulkPromoMutation,
   useRemoveBulkPromoMutation,
+  useApplySelectedProductsPromoMutation,
+  useRemoveSelectedProductsPromoMutation,
   useApplyProductPromoMutation,
   useRemoveProductPromoMutation,
 } = productsAPI;
