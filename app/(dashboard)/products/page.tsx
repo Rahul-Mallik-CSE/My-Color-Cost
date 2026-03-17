@@ -24,6 +24,8 @@ import {
   useRemoveBulkDiscountMutation,
   useApplyProductDiscountMutation,
   useRemoveProductDiscountMutation,
+  useApplySelectedProductsDiscountMutation,
+  useRemoveSelectedProductsDiscountMutation,
   useApplySelectedProductsPromoMutation,
   useRemoveSelectedProductsPromoMutation,
 } from "@/redux/services/productsAPI";
@@ -75,9 +77,14 @@ export default function ProductsPage() {
   const [productDiscountValue, setProductDiscountValue] = useState("");
   const [isSelectedPromoModalOpen, setIsSelectedPromoModalOpen] =
     useState(false);
+  const [isSelectedDealModalOpen, setIsSelectedDealModalOpen] = useState(false);
   const [selectedPromoBuyQuantity, setSelectedPromoBuyQuantity] = useState("");
   const [selectedPromoFreeQuantity, setSelectedPromoFreeQuantity] =
     useState("");
+  const [selectedDiscountType, setSelectedDiscountType] = useState<
+    "amount" | "percentage"
+  >("amount");
+  const [selectedDiscountValue, setSelectedDiscountValue] = useState("");
 
   // Fetch products from API
   const { data, isLoading, isFetching, error } = useGetAllProductsQuery({
@@ -101,6 +108,12 @@ export default function ProductsPage() {
     useApplyProductDiscountMutation();
   const [removeProductDiscount, { isLoading: isRemovingProductDiscount }] =
     useRemoveProductDiscountMutation();
+  const [applySelectedProductsDiscount, { isLoading: isApplyingSelectedDeal }] =
+    useApplySelectedProductsDiscountMutation();
+  const [
+    removeSelectedProductsDiscount,
+    { isLoading: isRemovingSelectedDeal },
+  ] = useRemoveSelectedProductsDiscountMutation();
   const [applySelectedProductsPromo, { isLoading: isApplyingSelectedPromo }] =
     useApplySelectedProductsPromoMutation();
   const [removeSelectedProductsPromo, { isLoading: isRemovingSelectedPromo }] =
@@ -301,6 +314,22 @@ export default function ProductsPage() {
     setIsSelectedPromoModalOpen(true);
   };
 
+  const handleOpenSelectedDealModal = () => {
+    if (isStripeDisconnected) {
+      toast.error("Connect Stripe to manage product discounts");
+      return;
+    }
+
+    if (selectedProductCount === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+
+    setSelectedDiscountType("amount");
+    setSelectedDiscountValue("");
+    setIsSelectedDealModalOpen(true);
+  };
+
   const handleApplySelectedPromo = async () => {
     if (!selectedPromoBuyQuantity || !selectedPromoFreeQuantity) {
       toast.error("Please enter both buy and free quantities");
@@ -365,6 +394,73 @@ export default function ProductsPage() {
       const errorMessage =
         (error as { data?: { message?: string } })?.data?.message ||
         "Failed to remove promo for selected products. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleApplySelectedDeal = async () => {
+    if (!selectedDiscountValue || parseFloat(selectedDiscountValue) <= 0) {
+      toast.error("Please enter a valid discount value");
+      return;
+    }
+
+    if (
+      selectedDiscountType === "percentage" &&
+      parseFloat(selectedDiscountValue) > 99
+    ) {
+      toast.error("Percentage discount must be less than 100%");
+      return;
+    }
+
+    const productIds = selectedProductIds
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
+
+    if (productIds.length === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+
+    try {
+      const response = await applySelectedProductsDiscount({
+        discount_type: selectedDiscountType,
+        discount_value: parseFloat(selectedDiscountValue),
+        product_ids: productIds,
+      }).unwrap();
+      toast.success(
+        response.message || "Discount applied to selected products",
+      );
+      setIsSelectedDealModalOpen(false);
+    } catch (error) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Failed to apply discount for selected products. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRemoveSelectedDeal = async () => {
+    const productIds = selectedProductIds
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
+
+    if (productIds.length === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+
+    try {
+      const response = await removeSelectedProductsDiscount({
+        product_ids: productIds,
+      }).unwrap();
+      toast.success(
+        response.message || "Discount removed from selected products",
+      );
+      setIsSelectedDealModalOpen(false);
+    } catch (error) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Failed to remove discount for selected products. Please try again.";
       toast.error(errorMessage);
     }
   };
@@ -528,6 +624,13 @@ export default function ProductsPage() {
                 onChange={(e) => handleSearch(e.target.value)}
                 className="h-10 w-full sm:w-72"
               />
+              <Button
+                onClick={handleOpenSelectedDealModal}
+                disabled={selectedProductCount === 0 || isStripeDisconnected}
+                className="h-10 rounded-lg whitespace-nowrap"
+              >
+                Selected Deal Setup ({selectedProductCount})
+              </Button>
               <Button
                 onClick={handleOpenSelectedPromoModal}
                 disabled={selectedProductCount === 0 || isStripeDisconnected}
@@ -967,6 +1070,82 @@ export default function ProductsPage() {
                 className="h-11 flex-1 rounded-lg"
               >
                 {isRemovingSelectedPromo ? "Removing..." : "Remove Promo"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isSelectedDealModalOpen}
+        onOpenChange={setIsSelectedDealModalOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Selected Deal Setup ({selectedProductCount} products)
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="mt-2 flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Discount Type</label>
+              <Select
+                value={selectedDiscountType}
+                onValueChange={(value: "amount" | "percentage") =>
+                  setSelectedDiscountType(value)
+                }
+              >
+                <SelectTrigger className="h-11 rounded-lg">
+                  <SelectValue placeholder="Select discount type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="amount">Amount ($)</SelectItem>
+                  <SelectItem value="percentage">Percentage (%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Discount Value</label>
+              <Input
+                type="number"
+                placeholder={
+                  selectedDiscountType === "percentage"
+                    ? "Enter percentage value (max 99)"
+                    : "Enter amount value"
+                }
+                value={selectedDiscountValue}
+                onChange={(e) => setSelectedDiscountValue(e.target.value)}
+                className="h-11 rounded-lg"
+                min="0"
+                max={selectedDiscountType === "percentage" ? "99" : undefined}
+              />
+            </div>
+
+            <div className="mt-2 flex gap-3">
+              <Button
+                onClick={handleApplySelectedDeal}
+                disabled={
+                  isApplyingSelectedDeal ||
+                  isRemovingSelectedDeal ||
+                  isStripeDisconnected
+                }
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isApplyingSelectedDeal ? "Applying..." : "Apply Discount"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleRemoveSelectedDeal}
+                disabled={
+                  isApplyingSelectedDeal ||
+                  isRemovingSelectedDeal ||
+                  isStripeDisconnected
+                }
+                className="h-11 flex-1 rounded-lg"
+              >
+                {isRemovingSelectedDeal ? "Removing..." : "Remove Discount"}
               </Button>
             </div>
           </div>

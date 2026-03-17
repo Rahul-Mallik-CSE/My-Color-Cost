@@ -270,6 +270,55 @@ export const productsAPI = apiSlice.injectEndpoints({
       ],
     }),
 
+    // Apply discount for selected products
+    applySelectedProductsDiscount: builder.mutation<
+      {
+        success: boolean;
+        statusCode: number;
+        message: string;
+        data: {
+          discount_type: "amount" | "percentage";
+          discount_value: string;
+          total_products: number;
+          products_affected: number;
+          products_skipped: number;
+          skip_reason: string | null;
+        };
+      },
+      {
+        discount_type: "amount" | "percentage";
+        discount_value: number;
+        product_ids: number[];
+      }
+    >({
+      query: (data) => ({
+        url: `/retailer/retailer/products/bulk-discount/`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["BulkDiscount", { type: "Product", id: "LIST" }],
+    }),
+
+    // Remove discount for selected products
+    removeSelectedProductsDiscount: builder.mutation<
+      {
+        success: boolean;
+        statusCode: number;
+        message: string;
+        data: {
+          products_updated: number;
+        };
+      },
+      { product_ids: number[] }
+    >({
+      query: (data) => ({
+        url: `/retailer/retailer/products/bulk-discount/`,
+        method: "DELETE",
+        body: data,
+      }),
+      invalidatesTags: ["BulkDiscount", { type: "Product", id: "LIST" }],
+    }),
+
     // Apply bulk promo
     applyBulkPromo: builder.mutation<
       {
@@ -384,6 +433,8 @@ export const {
   useRemoveBulkDiscountMutation,
   useApplyProductDiscountMutation,
   useRemoveProductDiscountMutation,
+  useApplySelectedProductsDiscountMutation,
+  useRemoveSelectedProductsDiscountMutation,
   useApplyBulkPromoMutation,
   useRemoveBulkPromoMutation,
   useApplySelectedProductsPromoMutation,
