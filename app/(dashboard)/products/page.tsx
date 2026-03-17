@@ -578,7 +578,7 @@ export default function ProductsPage() {
         )}
 
         {/* Discount Headline */}
-        {hasProducts && (
+        {/* {hasProducts && (
           <div className="rounded-2xl border border-pink-300 bg-white px-5 py-4 shadow-sm sm:px-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -597,7 +597,7 @@ export default function ProductsPage() {
               </Badge>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Error State */}
         {error && (
