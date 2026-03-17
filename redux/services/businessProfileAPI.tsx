@@ -24,11 +24,16 @@ export interface BusinessProfileProduct {
   description: string;
   image: string;
   price: number;
+  discountedPrice?: number;
   vat: number;
   currency: string;
   rating: number;
   reviewsCount: number;
   stock: number;
+  stockStatus: string;
+  promoIsActive: boolean;
+  promoBuyQuantity: number | null;
+  promoFreeQuantity: number | null;
 }
 
 export interface BusinessProfileResponse {
@@ -58,11 +63,18 @@ const transformProduct = (p: ProductAPI): BusinessProfileProduct => ({
   description: p.description,
   image: getFullImageUrl(p.image_url),
   price: parseFloat(p.market_price),
+  discountedPrice: p.discounted_market_price
+    ? parseFloat(p.discounted_market_price)
+    : undefined,
   vat: parseFloat(p.vat),
   currency: "£",
   rating: parseFloat(p.average_rating),
   reviewsCount: p.total_reviews,
   stock: p.quantity,
+  stockStatus: p.stock_status,
+  promoIsActive: p.promo_is_active,
+  promoBuyQuantity: p.promo_buy_quantity,
+  promoFreeQuantity: p.promo_free_quantity,
 });
 
 // ============================================
