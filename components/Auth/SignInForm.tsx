@@ -138,7 +138,7 @@ export const SignInForm = () => {
         toast.error(apiError.error);
       } else {
         clearAuthCookies();
-        toast.error("Something went wrong. Please try again.");
+        toast.error("Please enter the correct email and password to login.");
       }
     }
   };
