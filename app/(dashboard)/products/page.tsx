@@ -739,7 +739,11 @@ export default function ProductsPage() {
                       </div>
                     </TableCell>
 
-                    <TableCell>{getStockBadge(product)}</TableCell>
+                    <TableCell>
+                      <p className="font-medium text-foreground">
+                        {Number(product.stock) || 0}
+                      </p>
+                    </TableCell>
 
                     <TableCell>
                       <div className="flex items-center gap-2">
