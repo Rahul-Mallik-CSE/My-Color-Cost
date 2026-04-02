@@ -277,18 +277,24 @@ const VerifyOtp = () => {
                 </Button>
 
                 {/* Resend Link */}
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-base font-normal text-foreground">
-                    Don&apos;t receive the OTP?
+                <div>
+                  <span className="text-sm font-normal text-foreground">
+                    OTP has been sent to your email, please remember to check
+                    your junk.
                   </span>
-                  <button
-                    type="button"
-                    onClick={onResend}
-                    disabled={isResending}
-                    className="text-base font-semibold text-primary hover:text-primary/80 hover:underline transition-colors focus:outline-none disabled:opacity-50"
-                  >
-                    {isResending ? "Sending..." : "Resend"}
-                  </button>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-base font-normal text-foreground">
+                      Don&apos;t receive the OTP?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onResend}
+                      disabled={isResending}
+                      className="text-base font-semibold text-primary hover:text-primary/80 hover:underline transition-colors focus:outline-none disabled:opacity-50"
+                    >
+                      {isResending ? "Sending..." : "Resend"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

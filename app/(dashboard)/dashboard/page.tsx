@@ -29,14 +29,14 @@ export default function DashboardPage() {
         },
         {
           title: "Total Sales",
-          value: `$${parseFloat(statsResponse.data.total_sales).toFixed(2)}`,
+          value: `£${parseFloat(statsResponse.data.total_sales).toFixed(2)}`,
           icon: LineChart,
           iconColor: "#4AD991",
           iconBgColor: "#d9f7e7",
         },
         {
           title: "Total Pending",
-          value: `$${parseFloat(statsResponse.data.total_pending).toFixed(2)}`,
+          value: `£${parseFloat(statsResponse.data.total_pending).toFixed(2)}`,
           icon: History,
           iconColor: "#FEC12C",
           iconBgColor: "#FDF1E2",
