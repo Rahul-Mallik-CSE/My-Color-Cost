@@ -1,3 +1,5 @@
+/** @format */
+
 // app\layout.tsx
 import type { Metadata } from "next";
 import { Inter, Geist_Mono, Nunito_Sans, Zilla_Slab } from "next/font/google";
@@ -28,7 +30,7 @@ const zilla = Zilla_Slab({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ),
   title: {
     default: "My Color Cost - Retailer Dashboard",
@@ -119,7 +121,7 @@ export default function RootLayout({
           content="width=device-width, initial-scale=1, maximum-scale=5"
         />
         <meta name="theme-color" content="#F3A6BE" />
-        <link rel="icon" href="/favicon-96x96.png" />
+        <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
           type="application/ld+json"
@@ -158,8 +160,8 @@ export default function RootLayout({
           forcedTheme="light"
         >
           <StoreProvider>
-              {children}
-              <Toaster richColors position="top-center" />
+            {children}
+            <Toaster richColors position="top-center" />
           </StoreProvider>
         </ThemeProvider>
       </body>
