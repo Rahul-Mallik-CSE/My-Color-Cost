@@ -330,7 +330,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
     <div
       className={cn(
         "rounded-md flex flex-col md:flex-row bg-gray w-full flex-1 mx-auto",
-        "min-h-screen md:h-screen md:overflow-hidden relative",
+        "min-h-screen relative",
       )}
       suppressHydrationWarning
     >
@@ -659,8 +659,8 @@ const Logo = ({ open }: { open: boolean }) => {
 
 const Dashboard = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex flex-1 bg-background">
-      <div className="p-0 flex flex-col gap-2 flex-1 w-full md:h-screen md:overflow-y-auto overflow-x-hidden">
+    <div className="flex flex-1 min-w-0 bg-background">
+      <div className="p-0 flex flex-col gap-2 flex-1 w-full min-w-0 overflow-visible">
         {children}
       </div>
     </div>

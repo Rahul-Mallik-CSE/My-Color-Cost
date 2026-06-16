@@ -607,7 +607,7 @@ export default function ProductsPage() {
         )}
 
         <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-          <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex flex-col flex-wrap gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
               <p className="text-xl md:text-3xl font-semibold text-foreground">
                 Products Table
@@ -617,7 +617,7 @@ export default function ProductsPage() {
               </p>
             </div>
 
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <div className="flex flex-wrap w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
               <Input
                 placeholder="Search products in table..."
                 value={searchQuery}
